@@ -63,7 +63,7 @@ peg::parser! {
         rule frontend_header() -> (&'input str, Option<&'input str>)
             = whitespace() "frontend" whitespace() p:proxy_name() whitespace() service_address()? value()? c:comment_text()? line_break() {(p,c)}
 
-        rule backend_header() -> (&'input str, Option<&'input str>)
+        pub(super) rule backend_header() -> (&'input str, Option<&'input str>)
             = whitespace() "backend" whitespace() p:proxy_name() whitespace() value()? c:comment_text()? line_break() {(p,c)}
 
         rule config_block() -> Vec<Line<'input>>
@@ -215,7 +215,7 @@ peg::parser! {
             = not_comment_or_end()
 
         rule char()
-            =  [_] !['\n']
+            = [^ '\n']
 
         pub(super) rule whitespace()
             = quiet!{[' ' | '\t']*}
@@ -238,6 +238,12 @@ mod tests {
     #[test]
     fn config_line() {
         parser::config_line(include_str!("config_line.txt")).unwrap();
+    }
+
+    #[test]
+    fn backend_with_comment() {
+        println!("{:?}", include_str!("backend_with_comment.txt"));
+        parser::backend_header(include_str!("backend_with_comment.txt")).unwrap();
     }
 
     #[test]
