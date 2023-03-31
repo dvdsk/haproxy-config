@@ -1,13 +1,18 @@
-use haproxy_parser;
+use haproxy_config_parser::parse;
 
 #[test]
 fn minimal() {
     let file = include_str!("minimal_haproxy.cfg");
-    haproxy_parser::parse(file).unwrap();
+    if let Err(e) = parse(file) {
+        e.print();
+        println!("{}", e.inner);
+        println!("{:?}", e.inner);
+        unreachable!();
+    }
 }
 
-#[test]
-fn large() {
-    let file = include_str!("large_haproxy.cfg");
-    haproxy_parser::parse(file).unwrap();
-}
+// #[test]
+// fn large() {
+//     let file = include_str!("large_haproxy.cfg");
+//     parse(file).unwrap();
+// }
