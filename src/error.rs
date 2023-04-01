@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use ariadne::{Label, Report, ReportKind, Source};
 
@@ -14,6 +14,11 @@ pub struct Error<'input> {
 }
 
 impl<'i> Error<'i> {
+    pub fn with_path(mut self, path: impl Into<PathBuf>) -> Self {
+        self.path = Some(path.into());
+        self
+    }
+
     pub fn print(&self) {
         let offset = self.inner.location.offset;
         let msg = format!("expected {}", self.inner.expected);

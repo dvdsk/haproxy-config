@@ -65,7 +65,7 @@ pub enum Line<'input> {
     Server {
         name: &'input str,
         addr: Address<'input>,
-        other: Option<&'input str>,
+        option: Option<&'input str>,
         comment: Option<&'input str>,
     },
     Option {

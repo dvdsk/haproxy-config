@@ -1,11 +1,9 @@
 use std::net::Ipv4Addr;
 
 use super::error::Error;
-use super::tomato::*;
+use super::lines::*;
 
-pub fn parse<'input>(
-    input: &'input str,
-) -> Result<Vec<ConfigEntry<'input>>, Error<'input>> {
+pub fn parse<'input>(input: &'input str) -> Result<Vec<ConfigEntry<'input>>, Error<'input>> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
         source: input,
@@ -70,22 +68,23 @@ peg::parser! {
             = e:(server_line() / option_line() / bind_line() / acl_line() / backend_line() / group_line() / user_line() / config_line() / comment_line() / blank_line())* { e }
 
         rule server_line() -> Line<'input>
-            = whitespace() "server" whitespace() name:server_name() whitespace() addr:service_address() other:value()? comment:comment_text()? line_break() eof()? {
-                Line::Server { name, addr, other, comment }
+            = whitespace() "server" whitespace() name:server_name() whitespace() addr:service_address() option:value()? comment:comment_text()? line_break() eof()? {
+                // let option = option.map(str::trim);
+                Line::Server { name, addr, option, comment }
             }
 
         rule option_line() -> Line<'input>
-            = whitespace() "option" whitespace() keyword:keyword() whitespace() value:value()? comment:comment_text()? line_break() eof()? {
+            = whitespace() "option" whitespace() keyword:keyword() value:value()? comment:comment_text()? line_break() eof()? {
                 Line::Option { keyword, value, comment }
             }
 
         rule bind_line() -> Line<'input>
-            = whitespace() "bind" whitespaceplus() addr:service_address() whitespace() value:value()? comment:comment_text()? line_break() eof()? {
+            = whitespace() "bind" whitespaceplus() addr:service_address() value:value()? comment:comment_text()? line_break() eof()? {
                 Line::Bind { addr, value, comment }
             }
 
         rule acl_line() -> Line<'input>
-        = whitespace() "acl" whitespace() name:acl_name() whitespace() r:value()? comment:comment_text()? line_break() eof()? {
+        = whitespace() "acl" whitespace() name:acl_name() r:value()? comment:comment_text()? line_break() eof()? {
             Line::Acl { name, rule: r, comment }
         }
 
@@ -106,7 +105,7 @@ peg::parser! {
             = "password" { true } / "insecure-password" { false }
 
         rule groups() -> Vec<&'input str>
-            = "groups" groups:$(whitespace() value())+ {
+            = "groups" groups:(value() ++ whitespaceplus()) {
                 let mut groups = groups;
                 for group in &mut groups {
                     *group = group.trim();
@@ -114,8 +113,8 @@ peg::parser! {
                 groups
             }
 
-        rule user_line() -> Line<'input>
-            = whitespace() "user" whitespace() name:user_name() whitespace() secure:password_type() whitespace() password:password() whitespace() groups:groups()? comment:comment_text()? line_break() eof()? {
+        pub(super) rule user_line() -> Line<'input>
+            = whitespace() "user" whitespace() name:user_name() whitespace() secure:password_type() whitespaceplus() password:password() whitespaceplus() groups:groups()? comment:comment_text()? line_break() eof()? {
                 let password = if secure {
                     Password::Secure(password)
                 } else {
@@ -126,7 +125,7 @@ peg::parser! {
             }
 
         pub(super) rule config_line() -> Line<'input>
-            = whitespace() !("defaults" / "global" / "userlist" / "listen" / "frontend" / "backend") key:keyword() whitespace() value:value()? comment:comment_text()? line_break() eof()? {
+            = whitespace() !("defaults" / "global" / "userlist" / "listen" / "frontend" / "backend" / "server") key:keyword() value:value()? comment:comment_text()? line_break() eof()? {
                 Line::Config { key, value, comment }
             }
 
@@ -176,7 +175,7 @@ peg::parser! {
             = $([^ '#' | '\n']+)
 
         rule password() -> &'input str
-            = not_comment_or_end()
+            = $([^ '#' | '\n' | ' ']+)
 
         rule backend_condition() -> &'input str
             = not_comment_or_end()
@@ -212,7 +211,7 @@ peg::parser! {
             = alphanumeric_plus()
 
         rule value() -> &'input str
-            = not_comment_or_end()
+            = whitespaceplus() s:not_comment_or_end() { s }
 
         rule char()
             = [^ '\n']
@@ -229,6 +228,7 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
+    use crate::lines::Line;
 
     #[test]
     fn global() {
@@ -242,7 +242,6 @@ mod tests {
 
     #[test]
     fn backend_with_comment() {
-        println!("{:?}", include_str!("backend_with_comment.txt"));
         parser::backend_header(include_str!("backend_with_comment.txt")).unwrap();
     }
 
@@ -255,5 +254,14 @@ mod tests {
     #[test]
     fn comment_text() {
         parser::comment_text("# testing comment_text, *=* () hi!").unwrap();
+    }
+
+    #[test]
+    fn user_with_group() {
+        let line = parser::user_line(include_str!("user_with_group.txt")).unwrap();
+        match line {
+            Line::User { groups, .. } if groups == vec!["G1"] => (),
+            _ => panic!("groups not correct, line: {:?}", line),
+        }
     }
 }
