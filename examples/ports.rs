@@ -1,7 +1,7 @@
 use std::env;
 use std::fs::read_to_string;
 
-use haproxy_config_parser::parse;
+use haproxy_config_parser::{parse, config};
 
 fn main() {
     let path = env::args()
@@ -16,4 +16,6 @@ fn main() {
         }
     };
     println!("{parsed:#?}");
+    let config: config::Config = parsed.as_slice().try_into().unwrap();
+    println!("{config:#?}");
 }

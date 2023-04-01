@@ -7,6 +7,7 @@ use crate::lines::Line;
 
 use super::lines::ConfigEntry;
 
+#[derive(Debug)]
 pub struct Config {
     global: Global,
     default: Default,
@@ -19,7 +20,7 @@ pub struct Config {
 impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Config {
     type Error = Error<'a>;
 
-    fn try_from(entries: &'a[ConfigEntry<'a>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &'a [ConfigEntry<'a>]) -> Result<Self, Self::Error> {
         Ok(Config {
             global: Global::try_from(entries)?,
             default: Default::try_from(entries)?,
@@ -31,20 +32,22 @@ impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Config {
     }
 }
 
+#[derive(Debug)]
 pub enum Error<'a> {
     MissingGlobal,
     MultipleGlobalEntries(Vec<&'a ConfigEntry<'a>>),
     WrongGlobalLines(Vec<&'a Line<'a>>),
 }
 
+#[derive(Debug)]
 pub struct Global {
     config: HashMap<String, Option<String>>,
 }
 
-impl<'a> TryFrom<&'a[ConfigEntry<'a>]> for Global {
+impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Global {
     type Error = Error<'a>;
 
-    fn try_from(entries: &'a[ConfigEntry<'a>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &'a [ConfigEntry<'a>]) -> Result<Self, Self::Error> {
         let global_entries: Vec<_> = entries
             .into_iter()
             .filter(|e| matches!(e, ConfigEntry::Global { .. }))
@@ -57,8 +60,10 @@ impl<'a> TryFrom<&'a[ConfigEntry<'a>]> for Global {
         let global = global_entries.first().ok_or(Error::MissingGlobal)?;
         let ConfigEntry::Global{ lines, .. } = global else { unreachable!() };
 
-        let (config, other): (HashMap<String, Option<String>>, Vec<_>) =
-            lines.iter().partition_map(|l| match l {
+        let (config, other): (HashMap<String, Option<String>>, Vec<_>) = lines
+            .iter()
+            .filter(|l| !matches!(l, Line::Blank))
+            .partition_map(|l| match l {
                 Line::Config { key, value, .. } => {
                     let key = key.to_string();
                     let value = value.map(ToOwned::to_owned);
@@ -75,55 +80,60 @@ impl<'a> TryFrom<&'a[ConfigEntry<'a>]> for Global {
     }
 }
 
+#[derive(Debug)]
 pub struct Default;
 
 impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Default {
     type Error = Error<'a>;
 
     fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
-        todo!()
+        Ok(Default)
     }
 }
 
 /// sockets accepting clients
+#[derive(Debug)]
 pub struct Frontends;
 
 impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Frontends {
     type Error = Error<'a>;
 
     fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
-        todo!()
+        Ok(Frontends)
     }
 }
 
 /// servers to which traffic can be forwarded
+#[derive(Debug)]
 pub struct Backends;
 
 impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Backends {
     type Error = Error<'a>;
 
     fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
-        todo!()
+        Ok(Backends)
     }
 }
 
 /// socket on which to listen and where to forward the traffic
+#[derive(Debug)]
 pub struct Listens;
 
 impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Listens {
     type Error = Error<'a>;
 
     fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
-        todo!()
+        Ok(Listens)
     }
 }
 
+#[derive(Debug)]
 pub struct Userlists;
 
 impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Userlists {
     type Error = Error<'a>;
 
     fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
-        todo!()
+        Ok(Userlists)
     }
 }

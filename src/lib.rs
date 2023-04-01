@@ -1,6 +1,6 @@
 mod parser;
-mod error;
-mod lines;
-mod config;
+pub mod error;
+pub mod lines;
+pub mod config;
 
 pub use parser::parse;
