@@ -17,6 +17,10 @@ pub enum ConfigSection<'input> {
         comment: Option<&'input str>,
         proxy: &'input str,
         lines: Vec<Line<'input>>,
+        /// Optional address to which the frontend binds can be stated
+        /// in the header, for example `frontend webserver *:80` instead 
+        /// of a bind line, any optional config for the bind follows
+        header_addr: Option<(AddressRef<'input>, Option<&'input str>)>,
     },
     Backend {
         comment: Option<&'input str>,

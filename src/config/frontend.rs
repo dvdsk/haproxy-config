@@ -37,7 +37,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
     type Error = Error<'a>;
 
     fn try_from(entry: &'a ConfigSection<'a>) -> Result<Self, Self::Error> {
-        let ConfigSection::Frontend{ proxy, lines, ..} = entry else {
+        let ConfigSection::Frontend{ proxy, lines, header_addr, ..} = entry else {
             unreachable!()
         };
 
@@ -96,8 +96,12 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
             return Err(Error::MoreThenOneBind(binds));
         }
 
-        let Some(Line::Bind { addr, value, .. }) = binds.first() else {
-            unreachable!()
+        let (addr, bind_config) = match (binds.first(), header_addr) {
+            (None, None) => return Err(Error::NoBind),
+            (None, Some((addr, config))) => (addr, config),
+            (Some(Line::Bind { addr, value, .. }), None) => (addr, value),
+            (Some(_), None) => unreachable!(),
+            (Some(_), Some(_)) => return Err(Error::Header_And_BindLine),
         };
 
         Ok(Frontend {
@@ -108,7 +112,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
             backends,
             bind: Bind {
                 addr: Address::from(addr),
-                config: value.map(ToOwned::to_owned),
+                config: bind_config.map(ToOwned::to_owned),
             },
         })
     }

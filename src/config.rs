@@ -44,6 +44,8 @@ pub enum Error<'a> {
     AclWithoutRule(&'a str),
     WrongFrontendLines(Vec<&'a Line<'a>>),
     MoreThenOneBind(Vec<&'a Line<'a>>),
+    NoBind,
+    Header_And_BindLine,
 }
 
 #[derive(Debug, Default)]
