@@ -3,7 +3,7 @@ use std::net::Ipv4Addr;
 use super::error::Error;
 use super::lines::*;
 
-pub fn parse<'input>(input: &'input str) -> Result<Vec<ConfigEntry<'input>>, Error<'input>> {
+pub fn parse<'input>(input: &'input str) -> Result<Vec<ConfigSection<'input>>, Error<'input>> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
         source: input,
@@ -13,37 +13,37 @@ pub fn parse<'input>(input: &'input str) -> Result<Vec<ConfigEntry<'input>>, Err
 
 peg::parser! {
     grammar parser() for str {
-        pub(super) rule configuration() -> Vec<ConfigEntry<'input>>
+        pub(super) rule configuration() -> Vec<ConfigSection<'input>>
             = (config_comment() / config_blank() / global_section() / defaults_section() / userlist_section() / listen_section() / frontend_section() / backend_section())*
 
-        pub(super) rule global_section() -> ConfigEntry<'input>
+        pub(super) rule global_section() -> ConfigSection<'input>
             = comment:global_header() lines:config_block() {
-                ConfigEntry::Global{ comment, lines }
+                ConfigSection::Global{ comment, lines }
             }
 
-        rule defaults_section() -> ConfigEntry<'input>
+        rule defaults_section() -> ConfigSection<'input>
             = h:defaults_header() lines:config_block() {
-                ConfigEntry::Default{ comment: h.1, proxy: h.0, lines }
+                ConfigSection::Default{ comment: h.1, proxy: h.0, lines }
             }
 
-        rule userlist_section() -> ConfigEntry<'input>
+        rule userlist_section() -> ConfigSection<'input>
             = h:userlist_header() lines:config_block() {
-                ConfigEntry::UserList{ comment: h.1, proxy: h.0 , lines}
+                ConfigSection::UserList{ comment: h.1, proxy: h.0 , lines}
             }
 
-        rule listen_section() -> ConfigEntry<'input>
+        rule listen_section() -> ConfigSection<'input>
             = h:listen_header() lines:config_block() {
-                ConfigEntry::Listen{ comment: h.1, proxy: h.0 , lines}
+                ConfigSection::Listen{ comment: h.1, proxy: h.0 , lines}
             }
 
-        rule frontend_section() -> ConfigEntry<'input>
+        rule frontend_section() -> ConfigSection<'input>
             = h:frontend_header() lines:config_block() {
-                ConfigEntry::Frontend{ comment: h.1, proxy: h.0, lines }
+                ConfigSection::Frontend{ comment: h.1, proxy: h.0, lines }
             }
 
-        rule backend_section() -> ConfigEntry<'input>
+        rule backend_section() -> ConfigSection<'input>
             = h:backend_header() lines:config_block() {
-                ConfigEntry::Backend{ comment: h.1, proxy: h.0 , lines}
+                ConfigSection::Backend{ comment: h.1, proxy: h.0 , lines}
             }
 
         rule global_header() -> Option<&'input str>
@@ -129,8 +129,8 @@ peg::parser! {
                 Line::Config { key, value, comment }
             }
 
-        rule config_comment() -> ConfigEntry<'input>
-            = whitespace() t:comment_text() line_break() eof()? { ConfigEntry::Comment(t) }
+        rule config_comment() -> ConfigSection<'input>
+            = whitespace() t:comment_text() line_break() eof()? { ConfigSection::Comment(t) }
 
         rule comment_line() -> Line<'input>
             = whitespace() t:comment_text() line_break() eof()? { Line::Comment(t) }
@@ -138,8 +138,8 @@ peg::parser! {
         rule blank_line() -> Line<'input>
             = whitespace() line_break() eof()? { Line::Blank }
 
-        rule config_blank() -> ConfigEntry<'input>
-            = whitespace() line_break() eof()? { ConfigEntry::BlankLine }
+        rule config_blank() -> ConfigSection<'input>
+            = whitespace() line_break() eof()? { ConfigSection::BlankLine }
 
         pub(super) rule comment_text() -> &'input str
             = "#" s:$(char()*) &(line_break() / eof()) { s }
@@ -180,12 +180,12 @@ peg::parser! {
         rule backend_condition() -> &'input str
             = not_comment_or_end()
 
-        rule service_address() -> Address<'input>
+        rule service_address() -> AddressRef<'input>
             = host:host() [':']? port:port()? {
-                Address {host, port}
+                AddressRef {host, port}
             }
 
-        rule host() -> Host<'input>
+        rule host() -> HostRef<'input>
             = ipv4_host() / dns_host() / wildcard_host()
 
         rule port() -> u16
@@ -196,16 +196,16 @@ peg::parser! {
                 d.parse().expect("digits must represent unsigned 8 bit integer")
             }
 
-        rule ipv4_host() -> Host<'input>
+        rule ipv4_host() -> HostRef<'input>
             = a:digits_u8() "." b:digits_u8() "." c:digits_u8() "." d:digits_u8() {
-                Host::Ipv4(Ipv4Addr::new(a,b,c,d))
+                HostRef::Ipv4(Ipv4Addr::new(a,b,c,d))
             }
 
-        rule dns_host() -> Host<'input>
-            = s:$(['a'..='z' | 'A'..='Z' | '-' | '.' | '0'..='9']+) { Host::Dns(s) }
+        rule dns_host() -> HostRef<'input>
+            = s:$(['a'..='z' | 'A'..='Z' | '-' | '.' | '0'..='9']+) { HostRef::Dns(s) }
 
-        rule wildcard_host() -> Host<'input>
-            = "*" { Host::Wildcard }
+        rule wildcard_host() -> HostRef<'input>
+            = "*" { HostRef::Wildcard }
 
         rule proxy_name() -> &'input str
             = alphanumeric_plus()

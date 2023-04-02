@@ -4,27 +4,30 @@ use itertools::{Either, Itertools};
 use std::collections::HashMap;
 
 use crate::lines::Line;
+use self::frontend::Bind;
+use super::lines::ConfigSection;
 
-use super::lines::ConfigEntry;
+mod frontend;
+pub use frontend::Frontend;
 
 #[derive(Debug)]
 pub struct Config {
     global: Global,
     default: Default,
-    frontends: Frontends,
+    frontends: Vec<Frontend>,
     backends: Backends,
     listen: Listens,
     userlists: Userlists,
 }
 
-impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Config {
+impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
     type Error = Error<'a>;
 
-    fn try_from(entries: &'a [ConfigEntry<'a>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &'a [ConfigSection<'a>]) -> Result<Self, Self::Error> {
         Ok(Config {
             global: Global::try_from(entries)?,
             default: Default::try_from(entries)?,
-            frontends: Frontends::try_from(entries)?,
+            frontends: Frontend::parse_multiple(entries)?,
             backends: Backends::try_from(entries)?,
             listen: Listens::try_from(entries)?,
             userlists: Userlists::try_from(entries)?,
@@ -35,42 +38,37 @@ impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Config {
 #[derive(Debug)]
 pub enum Error<'a> {
     MissingGlobal,
-    MultipleGlobalEntries(Vec<&'a ConfigEntry<'a>>),
+    MultipleGlobalEntries(Vec<&'a ConfigSection<'a>>),
     WrongGlobalLines(Vec<&'a Line<'a>>),
+    MultipleDefaultEntries(Vec<&'a ConfigSection<'a>>),
+    AclWithoutRule(&'a str),
+    WrongFrontendLines(Vec<&'a Line<'a>>),
+    MoreThenOneBind(Vec<&'a Line<'a>>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Global {
-    config: HashMap<String, Option<String>>,
+    pub config: HashMap<String, Option<String>>,
 }
 
-impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Global {
+impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
     type Error = Error<'a>;
 
-    fn try_from(entries: &'a [ConfigEntry<'a>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &'a [ConfigSection<'a>]) -> Result<Self, Self::Error> {
         let global_entries: Vec<_> = entries
             .into_iter()
-            .filter(|e| matches!(e, ConfigEntry::Global { .. }))
+            .filter(|e| matches!(e, ConfigSection::Global { .. }))
             .collect();
 
         if global_entries.len() > 1 {
             return Err(Error::MultipleGlobalEntries(global_entries));
         }
 
-        let global = global_entries.first().ok_or(Error::MissingGlobal)?;
-        let ConfigEntry::Global{ lines, .. } = global else { unreachable!() };
+        let Some(ConfigSection::Global{ lines, ..}) = global_entries.first() else {
+            return Ok(Global::default());
+        };
 
-        let (config, other): (HashMap<String, Option<String>>, Vec<_>) = lines
-            .iter()
-            .filter(|l| !matches!(l, Line::Blank))
-            .partition_map(|l| match l {
-                Line::Config { key, value, .. } => {
-                    let key = key.to_string();
-                    let value = value.map(ToOwned::to_owned);
-                    Either::Left((key, value))
-                }
-                _other => Either::Right(_other),
-            });
+        let (config, other) = extract_config(lines);
 
         if !other.is_empty() {
             return Err(Error::WrongGlobalLines(other));
@@ -80,26 +78,79 @@ impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Global {
     }
 }
 
-#[derive(Debug)]
-pub struct Default;
-
-impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Default {
-    type Error = Error<'a>;
-
-    fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
-        Ok(Default)
-    }
+fn extract_config<'a>(
+    lines: &'a Vec<Line<'a>>,
+) -> (HashMap<String, Option<String>>, Vec<&'a Line<'a>>) {
+    let (config, other): (HashMap<_, Option<_>>, Vec<_>) = lines
+        .iter()
+        .filter(|l| !matches!(l, Line::Blank | Line::Comment(_)))
+        .partition_map(|l| match l {
+            Line::Config { key, value, .. } => {
+                let key = key.to_string();
+                let value = value.map(ToOwned::to_owned);
+                Either::Left((key, value))
+            }
+            _other => Either::Right(_other),
+        });
+    (config, other)
 }
 
-/// sockets accepting clients
-#[derive(Debug)]
-pub struct Frontends;
+#[derive(Debug, Default)]
+pub struct Default {
+    proxy: Option<String>,
+    config: HashMap<String, Option<String>>,
+    options: HashMap<String, Option<String>>,
+}
 
-impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Frontends {
+impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Default {
     type Error = Error<'a>;
 
-    fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
-        Ok(Frontends)
+    fn try_from(entries: &'a [ConfigSection<'_>]) -> Result<Self, Self::Error> {
+        let default_entries: Vec<_> = entries
+            .into_iter()
+            .filter(|e| matches!(e, ConfigSection::Default { .. }))
+            .collect();
+
+        if default_entries.len() > 1 {
+            return Err(Error::MultipleDefaultEntries(default_entries));
+        }
+
+        let Some(ConfigSection::Default{ proxy, lines, ..}) = default_entries.first() else {
+            return Ok(Default::default());
+        };
+
+        let mut config = HashMap::new();
+        let mut options = HashMap::new();
+        let mut other = Vec::new();
+        for line in lines.iter().filter(|l| !matches!(l, Line::Blank)) {
+            match line {
+                Line::Config { key, value, .. } => {
+                    let key = key.to_string();
+                    let value = value.map(ToOwned::to_owned);
+                    config.insert(key, value);
+                }
+                Line::Option {
+                    keyword: key,
+                    value,
+                    ..
+                } => {
+                    let key = key.to_string();
+                    let value = value.map(ToOwned::to_owned);
+                    options.insert(key, value);
+                }
+                _other => other.push(_other),
+            }
+        }
+
+        if !other.is_empty() {
+            return Err(Error::WrongGlobalLines(other));
+        }
+
+        Ok(Default {
+            proxy: proxy.map(ToOwned::to_owned),
+            config,
+            options,
+        })
     }
 }
 
@@ -107,10 +158,10 @@ impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Frontends {
 #[derive(Debug)]
 pub struct Backends;
 
-impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Backends {
+impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Backends {
     type Error = Error<'a>;
 
-    fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &[ConfigSection<'_>]) -> Result<Self, Self::Error> {
         Ok(Backends)
     }
 }
@@ -119,10 +170,10 @@ impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Backends {
 #[derive(Debug)]
 pub struct Listens;
 
-impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Listens {
+impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Listens {
     type Error = Error<'a>;
 
-    fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &[ConfigSection<'_>]) -> Result<Self, Self::Error> {
         Ok(Listens)
     }
 }
@@ -130,10 +181,10 @@ impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Listens {
 #[derive(Debug)]
 pub struct Userlists;
 
-impl<'a> TryFrom<&'a [ConfigEntry<'a>]> for Userlists {
+impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Userlists {
     type Error = Error<'a>;
 
-    fn try_from(entries: &[ConfigEntry<'_>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &[ConfigSection<'_>]) -> Result<Self, Self::Error> {
         Ok(Userlists)
     }
 }
