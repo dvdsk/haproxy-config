@@ -4,18 +4,19 @@ use itertools::{Either, Itertools};
 use std::collections::HashMap;
 
 use crate::lines::Line;
-use self::frontend::Bind;
 use super::lines::ConfigSection;
 
 mod frontend;
 pub use frontend::Frontend;
+mod backend;
+pub use backend::Backend;
 
 #[derive(Debug)]
 pub struct Config {
     global: Global,
     default: Default,
     frontends: Vec<Frontend>,
-    backends: Backends,
+    backends: Vec<Backend>,
     listen: Listens,
     userlists: Userlists,
 }
@@ -28,7 +29,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
             global: Global::try_from(entries)?,
             default: Default::try_from(entries)?,
             frontends: Frontend::parse_multiple(entries)?,
-            backends: Backends::try_from(entries)?,
+            backends: Backend::parse_multiple(entries)?,
             listen: Listens::try_from(entries)?,
             userlists: Userlists::try_from(entries)?,
         })
@@ -45,7 +46,7 @@ pub enum Error<'a> {
     WrongFrontendLines(Vec<&'a Line<'a>>),
     MoreThenOneBind(Vec<&'a Line<'a>>),
     NoBind,
-    Header_And_BindLine,
+    HeaderAndBindLine,
 }
 
 #[derive(Debug, Default)]

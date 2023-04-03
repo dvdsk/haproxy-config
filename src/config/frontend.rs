@@ -101,7 +101,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
             (None, Some((addr, config))) => (addr, config),
             (Some(Line::Bind { addr, value, .. }), None) => (addr, value),
             (Some(_), None) => unreachable!(),
-            (Some(_), Some(_)) => return Err(Error::Header_And_BindLine),
+            (Some(_), Some(_)) => return Err(Error::HeaderAndBindLine),
         };
 
         Ok(Frontend {
