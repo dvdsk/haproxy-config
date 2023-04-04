@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use super::Error;
+use super::{Error, Acl};
 use crate::lines::{Address, BackendModifier, ConfigSection, Line};
 
 #[derive(Debug)]
@@ -8,12 +8,6 @@ pub struct Backend {
     name: String,
     modifier: Option<BackendModifier>,
     condition: Option<String>,
-}
-
-#[derive(Debug, Hash, PartialEq, Eq)]
-pub struct Acl {
-    name: String,
-    rule: String,
 }
 
 #[derive(Debug)]

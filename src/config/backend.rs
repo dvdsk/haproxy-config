@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use super::{Error, Server};
+use super::{Error, Server, Acl};
 use crate::lines::{ConfigSection, Line};
 
 /// sockets accepting clients
@@ -9,6 +9,7 @@ pub struct Backend {
     name: String,
     config: HashMap<String, Option<String>>,
     options: HashMap<String, Option<String>>,
+    acls: HashSet<Acl>,
     servers: Vec<Server>,
 }
 
@@ -22,6 +23,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Backend {
 
         let mut config = HashMap::new();
         let mut options = HashMap::new();
+        let mut acls = HashSet::new();
         let mut servers = Vec::new();
         let mut other = Vec::new();
 
@@ -44,6 +46,12 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Backend {
                     let value = value.map(ToOwned::to_owned);
                     options.insert(key, value);
                 }
+                Line::Acl { name, rule, .. } => {
+                    acls.insert(Acl {
+                        name: name.to_string(),
+                        rule: rule.ok_or(Error::AclWithoutRule(*name))?.to_string(),
+                    });
+                }
                 Line::Server {
                     name,
                     addr,
@@ -59,13 +67,14 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Backend {
         }
 
         if !other.is_empty() {
-            return Err(Error::WrongFrontendLines(other));
+            return Err(Error::WrongBackendLines(other));
         }
 
         Ok(Backend {
             name: proxy.to_string(),
             config,
             options,
+            acls,
             servers,
         })
     }

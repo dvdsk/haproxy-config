@@ -1,4 +1,4 @@
-use haproxy_config_parser::parse;
+use haproxy_config_parser::parse_sections;
 
 macro_rules! test_file {
     ($name:ident, $path:literal) => {
@@ -6,10 +6,13 @@ macro_rules! test_file {
         fn $name() {
             let file = include_str!(std::concat!("from_gh/", $path, ".cfg"));
 
-            if let Err(e) = parse(&file) {
-                let e = e.with_path($path);
-                e.eprint();
-                panic!("{}", e.inner);
+            match parse_sections(&file) {
+                Err(e) => {
+                    let e = e.with_path($path);
+                    e.eprint();
+                    panic!("{}", e.inner);
+                }
+                Ok(lines) => println!("{lines:#?}"),
             }
         }
     };

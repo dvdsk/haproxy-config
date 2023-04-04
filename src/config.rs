@@ -13,6 +13,12 @@ pub use backend::Backend;
 mod listen;
 pub use listen::Listen;
 
+#[derive(Debug, Hash, PartialEq, Eq)]
+pub struct Acl {
+    name: String,
+    rule: String,
+}
+
 #[derive(Debug)]
 pub struct Bind {
     addr: Address,
@@ -63,6 +69,7 @@ pub enum Error<'a> {
     NoBind,
     HeaderAndBindLine,
     WrongListenLines(Vec<&'a Line<'a>>),
+    WrongBackendLines(Vec<&'a Line<'a>>),
 }
 
 #[derive(Debug, Default)]
