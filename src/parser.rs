@@ -33,7 +33,7 @@ peg::parser! {
 
         rule listen_section() -> ConfigSection<'input>
             = h:listen_header() lines:config_block() {
-                ConfigSection::Listen{ comment: h.1, proxy: h.0 , lines}
+                ConfigSection::Listen{ comment: h.1, proxy: h.0, header_addr: h.2, lines}
             }
 
         rule frontend_section() -> ConfigSection<'input>
@@ -55,11 +55,11 @@ peg::parser! {
         rule defaults_header() -> (Option<&'input str>, Option<&'input str>)
             = whitespace() "defaults" whitespace() p:proxy_name()? whitespace() c:comment_text()? line_break() {(p,c)}
 
-        rule listen_header() -> (&'input str, Option<&'input str>)
-            = whitespace() "listen" whitespace() p:proxy_name() whitespace() service_address()? value()? c:comment_text()? line_break() {(p,c)}
-
         rule header_bind() -> (AddressRef<'input>, Option<&'input str>)
             = s:service_address() v:value()? {(s, v)}
+
+        rule listen_header() -> (&'input str, Option<&'input str>, Option<(AddressRef<'input>, Option<&'input str>)>)
+            = whitespace() "listen" whitespace() p:proxy_name() whitespace() hb:header_bind()? c:comment_text()? line_break() {(p, c, hb)}
 
         rule frontend_header() -> (&'input str, Option<&'input str>, Option<(AddressRef<'input>, Option<&'input str>)>)
             = whitespace() "frontend" whitespace() p:proxy_name() whitespace() hb:header_bind()? c:comment_text()? line_break() {(p, c, hb)}

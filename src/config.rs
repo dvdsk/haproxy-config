@@ -3,13 +3,28 @@
 use itertools::{Either, Itertools};
 use std::collections::HashMap;
 
-use crate::lines::Line;
+use crate::lines::{Line, Address};
 use super::lines::ConfigSection;
 
 mod frontend;
 pub use frontend::Frontend;
 mod backend;
 pub use backend::Backend;
+mod listen;
+pub use listen::Listen;
+
+#[derive(Debug)]
+pub struct Bind {
+    addr: Address,
+    config: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct Server {
+    name: String,
+    addr: Address,
+    option: Option<String>,
+}
 
 #[derive(Debug)]
 pub struct Config {
@@ -17,7 +32,7 @@ pub struct Config {
     default: Default,
     frontends: Vec<Frontend>,
     backends: Vec<Backend>,
-    listen: Listens,
+    listen: Vec<Listen>,
     userlists: Userlists,
 }
 
@@ -30,7 +45,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
             default: Default::try_from(entries)?,
             frontends: Frontend::parse_multiple(entries)?,
             backends: Backend::parse_multiple(entries)?,
-            listen: Listens::try_from(entries)?,
+            listen: Listen::parse_multiple(entries)?,
             userlists: Userlists::try_from(entries)?,
         })
     }
@@ -47,6 +62,7 @@ pub enum Error<'a> {
     MoreThenOneBind(Vec<&'a Line<'a>>),
     NoBind,
     HeaderAndBindLine,
+    WrongListenLines(Vec<&'a Line<'a>>),
 }
 
 #[derive(Debug, Default)]
@@ -166,18 +182,6 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Backends {
 
     fn try_from(entries: &[ConfigSection<'_>]) -> Result<Self, Self::Error> {
         Ok(Backends)
-    }
-}
-
-/// socket on which to listen and where to forward the traffic
-#[derive(Debug)]
-pub struct Listens;
-
-impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Listens {
-    type Error = Error<'a>;
-
-    fn try_from(entries: &[ConfigSection<'_>]) -> Result<Self, Self::Error> {
-        Ok(Listens)
     }
 }
 

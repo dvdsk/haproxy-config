@@ -37,4 +37,23 @@ impl<'i> Error<'i> {
             .print((&path, Source::from(self.source)))
             .unwrap();
     }
+
+    pub fn eprint(&self) {
+        let offset = self.inner.location.offset;
+        let msg = format!("expected {}", self.inner.expected);
+
+        let path = self
+            .path
+            .as_ref()
+            .map(|p| p.to_string_lossy())
+            .map(Cow::into_owned)
+            .unwrap_or("<unknown>".to_string());
+
+        Report::build(ReportKind::Error, &path, offset)
+            .with_message(format!("parse error"))
+            .with_label(Label::new((&path, offset..offset + 1)).with_message(msg))
+            .finish()
+            .eprint((&path, Source::from(self.source)))
+            .unwrap();
+    }
 }

@@ -1,14 +1,7 @@
 use std::collections::HashMap;
 
-use super::Error;
-use crate::lines::{Address, ConfigSection, Line};
-
-#[derive(Debug)]
-pub struct Server {
-    name: String,
-    addr: Address,
-    option: Option<String>,
-}
+use super::{Error, Server};
+use crate::lines::{ConfigSection, Line};
 
 /// sockets accepting clients
 #[derive(Debug)]
