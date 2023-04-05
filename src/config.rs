@@ -76,6 +76,7 @@ pub enum Error<'a> {
     WrongListenLines(Vec<&'a Line<'a>>),
     WrongBackendLines(Vec<&'a Line<'a>>),
     WrongUserlistLines(Vec<&'a Line<'a>>),
+    WrongDefaultLines(Vec<&'a Line<'a>>),
 }
 
 #[derive(Debug, Default)]
@@ -116,6 +117,7 @@ fn extract_config<'a>(
     let (config, other): (HashMap<_, Option<_>>, Vec<_>) = lines
         .iter()
         .filter(|l| !matches!(l, Line::Blank | Line::Comment(_)))
+        .inspect(|l| eprintln!("mmm ****, {:?}", l))
         .partition_map(|l| match l {
             Line::Config { key, value, .. } => {
                 let key = key.to_string();
@@ -155,7 +157,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Default {
         let mut config = HashMap::new();
         let mut options = HashMap::new();
         let mut other = Vec::new();
-        for line in lines.iter().filter(|l| !matches!(l, Line::Blank)) {
+        for line in lines.iter().filter(|l| !matches!(l, Line::Blank | Line::Comment(_))) {
             match line {
                 Line::Config { key, value, .. } => {
                     let key = key.to_string();
@@ -176,7 +178,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Default {
         }
 
         if !other.is_empty() {
-            return Err(Error::WrongGlobalLines(other));
+            return Err(Error::WrongDefaultLines(other));
         }
 
         Ok(Default {
