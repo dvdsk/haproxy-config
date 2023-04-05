@@ -12,6 +12,8 @@ mod backend;
 pub use backend::Backend;
 mod listen;
 pub use listen::Listen;
+mod userlist;
+pub use userlist::Userlist;
 
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub struct Acl {
@@ -19,12 +21,14 @@ pub struct Acl {
     rule: String,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Bind {
     addr: Address,
     config: Option<String>,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Server {
     name: String,
@@ -32,6 +36,7 @@ pub struct Server {
     option: Option<String>,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Config {
     global: Global,
@@ -39,7 +44,7 @@ pub struct Config {
     frontends: Vec<Frontend>,
     backends: Vec<Backend>,
     listen: Vec<Listen>,
-    userlists: Userlists,
+    userlists: Vec<Userlist>,
 }
 
 impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
@@ -52,7 +57,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
             frontends: Frontend::parse_multiple(entries)?,
             backends: Backend::parse_multiple(entries)?,
             listen: Listen::parse_multiple(entries)?,
-            userlists: Userlists::try_from(entries)?,
+            userlists: Userlist::parse_multiple(entries)?,
         })
     }
 }
@@ -70,6 +75,7 @@ pub enum Error<'a> {
     HeaderAndBindLine,
     WrongListenLines(Vec<&'a Line<'a>>),
     WrongBackendLines(Vec<&'a Line<'a>>),
+    WrongUserlistLines(Vec<&'a Line<'a>>),
 }
 
 #[derive(Debug, Default)]
@@ -121,6 +127,7 @@ fn extract_config<'a>(
     (config, other)
 }
 
+#[allow(unused)]
 #[derive(Debug, Default)]
 pub struct Default {
     proxy: Option<String>,
@@ -177,28 +184,5 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Default {
             config,
             options,
         })
-    }
-}
-
-/// servers to which traffic can be forwarded
-#[derive(Debug)]
-pub struct Backends;
-
-impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Backends {
-    type Error = Error<'a>;
-
-    fn try_from(entries: &[ConfigSection<'_>]) -> Result<Self, Self::Error> {
-        Ok(Backends)
-    }
-}
-
-#[derive(Debug)]
-pub struct Userlists;
-
-impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Userlists {
-    type Error = Error<'a>;
-
-    fn try_from(entries: &[ConfigSection<'_>]) -> Result<Self, Self::Error> {
-        Ok(Userlists)
     }
 }

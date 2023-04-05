@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use super::{Error, Acl};
 use crate::lines::{Address, BackendModifier, ConfigSection, Line};
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Backend {
     name: String,
@@ -10,6 +11,7 @@ pub struct Backend {
     condition: Option<String>,
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Bind {
     addr: Address,
@@ -17,6 +19,7 @@ pub struct Bind {
 }
 
 /// sockets accepting clients
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Frontend {
     name: String,

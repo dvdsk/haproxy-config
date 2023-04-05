@@ -4,6 +4,7 @@ use super::{Error, Server, Acl};
 use crate::lines::{ConfigSection, Line};
 
 /// sockets accepting clients
+#[allow(unused)]
 #[derive(Debug)]
 pub struct Backend {
     name: String,

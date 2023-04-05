@@ -36,9 +36,9 @@ pub enum ConfigSection<'input> {
         proxy: &'input str,
         lines: Vec<Line<'input>>,
     },
-    UserList {
+    Userlist {
         comment: Option<&'input str>,
-        proxy: &'input str,
+        name: &'input str,
         lines: Vec<Line<'input>>,
     },
 }
@@ -95,7 +95,7 @@ pub enum BackendModifier {
 }
 
 #[derive(Debug)]
-pub enum Password<'input> {
+pub enum PasswordRef<'input> {
     Secure(&'input str),
     Insecure(&'input str),
 }
@@ -131,12 +131,12 @@ pub enum Line<'input> {
     },
     Group {
         name: &'input str,
-        user: Option<&'input str>,
+        users: Vec<&'input str>,
         comment: Option<&'input str>,
     },
     User {
         name: &'input str,
-        password: Password<'input>,
+        password: PasswordRef<'input>,
         groups: Vec<&'input str>,
         comment: Option<&'input str>, 
     },

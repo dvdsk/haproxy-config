@@ -3,7 +3,9 @@ use std::net::Ipv4Addr;
 use super::error::Error;
 use super::lines::*;
 
-pub fn parse_sections<'input>(input: &'input str) -> Result<Vec<ConfigSection<'input>>, Error<'input>> {
+pub fn parse_sections<'input>(
+    input: &'input str,
+) -> Result<Vec<ConfigSection<'input>>, Error<'input>> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
         source: input,
@@ -28,7 +30,7 @@ peg::parser! {
 
         rule userlist_section() -> ConfigSection<'input>
             = h:userlist_header() lines:config_block() {
-                ConfigSection::UserList{ comment: h.1, proxy: h.0 , lines}
+                ConfigSection::Userlist{ comment: h.1, name: h.0 , lines}
             }
 
         rule listen_section() -> ConfigSection<'input>
@@ -99,16 +101,25 @@ peg::parser! {
                 Line::Backend {name, modifier, condition, comment }
             }
 
-        rule group_line() -> Line<'input>
-            = whitespace() "group" whitespace() name:group_name() whitespace() ("users" whitespace())? user:value()? comment:comment_text()? line_break() eof()? {
-                Line::Group { name, user, comment }
+        rule users() -> Vec<&'input str>
+            = "users" users:(value() ++ whitespaceplus()) {
+                let mut users = users;
+                for user in &mut users {
+                    *user = user.trim();
+                }
+                users
+            }
+
+        pub(super) rule group_line() -> Line<'input>
+            = whitespace() "group" whitespace() name:group_name() whitespace() users:users() comment:comment_text()? line_break() eof()? {
+                Line::Group { name, users, comment }
             }
 
         rule password_type() -> bool
             = "password" { true } / "insecure-password" { false }
 
         rule groups() -> Vec<&'input str>
-            = "groups" groups:(value() ++ whitespaceplus()) {
+            = whitespaceplus() "groups" groups:(value() ++ whitespaceplus()) {
                 let mut groups = groups;
                 for group in &mut groups {
                     *group = group.trim();
@@ -117,11 +128,11 @@ peg::parser! {
             }
 
         pub(super) rule user_line() -> Line<'input>
-            = whitespace() "user" whitespace() name:user_name() whitespace() secure:password_type() whitespaceplus() password:password() whitespaceplus() groups:groups()? comment:comment_text()? line_break() eof()? {
+            = whitespace() "user" whitespace() name:user_name() whitespace() secure:password_type() whitespaceplus() password:password() groups:groups()? comment:comment_text()? line_break() eof()? {
                 let password = if secure {
-                    Password::Secure(password)
+                    PasswordRef::Secure(password)
                 } else {
-                    Password::Insecure(password)
+                    PasswordRef::Insecure(password)
                 };
                 let groups = groups.unwrap_or_else(Vec::new);
                 Line::User { name, password, groups, comment}
@@ -231,7 +242,7 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
-    use crate::lines::Line;
+    use crate::lines::{Line, PasswordRef};
 
     #[test]
     fn global() {
@@ -264,6 +275,31 @@ mod tests {
         let line = parser::user_line(include_str!("user_with_group.txt")).unwrap();
         match line {
             Line::User { groups, .. } if groups == vec!["G1"] => (),
+            _ => panic!("groups not correct, line: {:?}", line),
+        }
+    }
+
+    #[test]
+    fn user() {
+        let line = parser::user_line(include_str!("user.txt")).unwrap();
+        match line {
+            Line::User {
+                groups,
+                password: PasswordRef::Insecure(pass),
+                ..
+            } => {
+                assert_eq!(groups, Vec::<&str>::new());
+                assert_eq!(pass, "test");
+            }
+            _ => panic!("user not correct, line: {:?}", line),
+        }
+    }
+
+    #[test]
+    fn group_with_users() {
+        let line = parser::group_line(include_str!("group_with_users.txt")).unwrap();
+        match line {
+            Line::Group { users, .. } if users == vec!["haproxy"] => (),
             _ => panic!("groups not correct, line: {:?}", line),
         }
     }
