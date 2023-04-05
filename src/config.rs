@@ -89,7 +89,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
 
     fn try_from(entries: &'a [ConfigSection<'a>]) -> Result<Self, Self::Error> {
         let global_entries: Vec<_> = entries
-            .into_iter()
+            .iter()
             .filter(|e| matches!(e, ConfigSection::Global { .. }))
             .collect();
 
@@ -112,7 +112,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
 }
 
 fn extract_config<'a>(
-    lines: &'a Vec<Line<'a>>,
+    lines: &'a [Line<'a>],
 ) -> (HashMap<String, Option<String>>, Vec<&'a Line<'a>>) {
     let (config, other): (HashMap<_, Option<_>>, Vec<_>) = lines
         .iter()
@@ -142,7 +142,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Default {
 
     fn try_from(entries: &'a [ConfigSection<'_>]) -> Result<Self, Self::Error> {
         let default_entries: Vec<_> = entries
-            .into_iter()
+            .iter()
             .filter(|e| matches!(e, ConfigSection::Default { .. }))
             .collect();
 

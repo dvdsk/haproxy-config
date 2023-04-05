@@ -62,7 +62,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Userlist {
                 }),
                 Line::Group { name, users, .. } => groups.push(Group {
                     name: name.to_string(),
-                    users: users.into_iter().map(ToString::to_string).collect(),
+                    users: users.iter().map(ToString::to_string).collect(),
                 }),
                 _other => other.push(_other),
             }
@@ -83,7 +83,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Userlist {
 impl<'a> Userlist {
     pub fn parse_multiple(entries: &'a [ConfigSection<'a>]) -> Result<Vec<Self>, Error<'a>> {
         entries
-            .into_iter()
+            .iter()
             .filter(|e| matches!(e, ConfigSection::Userlist { .. }))
             .map(Userlist::try_from)
             .collect()

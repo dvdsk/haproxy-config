@@ -67,7 +67,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
                 Line::Acl { name, rule, .. } => {
                     acls.insert(Acl {
                         name: name.to_string(),
-                        rule: rule.ok_or(Error::AclWithoutRule(*name))?.to_string(),
+                        rule: rule.ok_or(Error::AclWithoutRule(name))?.to_string(),
                     });
                 }
                 Line::Backend {
@@ -118,7 +118,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
 impl<'a> Frontend {
     pub fn parse_multiple(entries: &'a [ConfigSection<'a>]) -> Result<Vec<Self>, Error<'a>> {
         entries
-            .into_iter()
+            .iter()
             .filter(|e| matches!(e, ConfigSection::Frontend { .. }))
             .map(Frontend::try_from)
             .collect()

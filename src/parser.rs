@@ -3,9 +3,9 @@ use std::net::Ipv4Addr;
 use super::error::Error;
 use super::lines::*;
 
-pub fn parse_sections<'input>(
-    input: &'input str,
-) -> Result<Vec<ConfigSection<'input>>, Error<'input>> {
+pub fn parse_sections(
+    input: &str,
+) -> Result<Vec<ConfigSection<'_>>, Error<'_>> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
         source: input,
@@ -134,7 +134,7 @@ peg::parser! {
                 } else {
                     PasswordRef::Insecure(password)
                 };
-                let groups = groups.unwrap_or_else(Vec::new);
+                let groups = groups.unwrap_or_default();
                 Line::User { name, password, groups, comment}
             }
 

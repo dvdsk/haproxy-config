@@ -31,7 +31,7 @@ impl<'i> Error<'i> {
             .unwrap_or("<unknown>".to_string());
 
         Report::build(ReportKind::Error, &path, offset)
-            .with_message(format!("parse error"))
+            .with_message("parse error".to_string())
             .with_label(Label::new((&path, offset..offset + 1)).with_message(msg))
             .finish()
             .print((&path, Source::from(self.source)))
@@ -50,7 +50,7 @@ impl<'i> Error<'i> {
             .unwrap_or("<unknown>".to_string());
 
         Report::build(ReportKind::Error, &path, offset)
-            .with_message(format!("parse error"))
+            .with_message("parse error".to_string())
             .with_label(Label::new((&path, offset..offset + 1)).with_message(msg))
             .finish()
             .eprint((&path, Source::from(self.source)))

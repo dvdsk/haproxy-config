@@ -57,7 +57,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Listen {
                 Line::Acl { name, rule, .. } => {
                     acls.insert(Acl {
                         name: name.to_string(),
-                        rule: rule.ok_or(Error::AclWithoutRule(*name))?.to_string(),
+                        rule: rule.ok_or(Error::AclWithoutRule(name))?.to_string(),
                     });
                 }
                 Line::Bind { .. } => binds.push(line),
@@ -98,7 +98,7 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Listen {
 impl<'a> Listen {
     pub fn parse_multiple(entries: &'a [ConfigSection<'a>]) -> Result<Vec<Self>, Error<'a>> {
         entries
-            .into_iter()
+            .iter()
             .filter(|e| matches!(e, ConfigSection::Listen { .. }))
             .map(Listen::try_from)
             .collect()
