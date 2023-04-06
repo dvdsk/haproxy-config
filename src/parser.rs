@@ -3,6 +3,15 @@ use std::net::Ipv4Addr;
 use super::error::Error;
 use super::sections::*;
 
+/// # Examples
+/// ```
+/// # use haproxy_config_parser::parse_sections;
+/// let file = include_str!("../tests/medium_haproxy.cfg");
+/// if let Err(e) = parse_sections(file) {
+///     e.print();
+///     panic!("{}", e.inner);
+/// }
+/// ```
 pub fn parse_sections(input: &str) -> Result<Vec<ConfigSection>, Error<'_>> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,

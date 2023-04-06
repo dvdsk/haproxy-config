@@ -1,4 +1,4 @@
-use haproxy_config_parser::parse_sections;
+use haproxy_config_parser::{parse_sections, Config};
 use std::path::PathBuf;
 
 macro_rules! test_file {
@@ -6,12 +6,14 @@ macro_rules! test_file {
         #[test]
         fn $name() {
             let file = include_str!(std::concat!(stringify!($name), "_haproxy.cfg"));
-            if let Err(e) = parse_sections(file) {
-                let path = std::concat!(stringify!($name), "_haproxy.cfg");
-                let e = e.with_path(PathBuf::from(path));
-                e.print();
-                panic!("{}", e.inner);
-            }
+            let path = std::concat!(stringify!($name), "_haproxy.cfg");
+            let lines = parse_sections(file)
+                .map_err(|e| e.with_path(PathBuf::from(path)))
+                .unwrap();
+            println!("{lines:#?}");
+
+            let config = Config::try_from(lines.as_slice()).unwrap();
+            println!("{config:#?}");
         }
     };
 }

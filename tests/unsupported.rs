@@ -6,19 +6,14 @@ macro_rules! test_file {
         #[test]
         fn $name() {
             let file = include_str!(std::concat!("unsupported/", stringify!($name), ".cfg"));
-            match parse_sections(file) {
-                Err(e) => {
-                    let path = std::concat!(stringify!($name), "_haproxy.cfg");
-                    let e = e.with_path(PathBuf::from(path));
-                    e.print();
-                    panic!("{}", e.inner);
-                }
-                Ok(sections) => {
-                    assert!(sections
-                        .iter()
-                        .any(|s| matches!(s, ConfigSection::UnknownLine { .. })))
-                }
-            }
+            let path = std::concat!(stringify!($name), "_haproxy.cfg");
+            let sections = parse_sections(file)
+                .map_err(|e| e.with_path(PathBuf::from(path)))
+                .unwrap();
+
+            assert!(sections
+                .iter()
+                .any(|s| matches!(s, ConfigSection::UnknownLine { .. })))
         }
     };
 }

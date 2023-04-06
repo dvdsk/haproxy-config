@@ -1,4 +1,5 @@
 use std::borrow::Cow;
+use std::io::BufWriter;
 use std::path::PathBuf;
 
 use ariadne::{Label, Report, ReportKind, Source};
@@ -6,11 +7,26 @@ use ariadne::{Label, Report, ReportKind, Source};
 use peg::error::ParseError;
 use peg::str::LineCol;
 
-#[derive(Debug)]
 pub struct Error<'input> {
     pub inner: ParseError<LineCol>,
     pub source: &'input str,
     pub path: Option<PathBuf>,
+}
+
+impl std::fmt::Debug for Error<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut bytes = Vec::new();
+        {
+            let buf = BufWriter::new(&mut bytes);
+
+            self.report()
+                .write((self.path(), Source::from(self.source)), buf)
+                .unwrap();
+        }
+
+        let string = String::from_utf8(bytes).expect("source is utf8 thus report is utf8");
+        f.write_str(&string)
+    }
 }
 
 impl<'i> Error<'i> {
@@ -19,41 +35,23 @@ impl<'i> Error<'i> {
         self
     }
 
-    pub fn print(&self) {
+    pub fn report(&self) -> Report<(String, std::ops::Range<usize>)> {
         let offset = self.inner.location.offset;
         let msg = format!("expected {}", self.inner.expected);
 
-        let path = self
-            .path
-            .as_ref()
-            .map(|p| p.to_string_lossy())
-            .map(Cow::into_owned)
-            .unwrap_or("<unknown>".to_string());
-
-        Report::build(ReportKind::Error, &path, offset)
+        Report::build(ReportKind::Error, self.path(), offset)
             .with_message("parse error".to_string())
-            .with_label(Label::new((&path, offset..offset + 1)).with_message(msg))
+            .with_label(Label::new((self.path(), offset..offset + 1)).with_message(msg))
             .finish()
-            .print((&path, Source::from(self.source)))
-            .unwrap();
     }
 
-    pub fn eprint(&self) {
-        let offset = self.inner.location.offset;
-        let msg = format!("expected {}", self.inner.expected);
-
+    fn path(&self) -> String {
         let path = self
             .path
             .as_ref()
             .map(|p| p.to_string_lossy())
             .map(Cow::into_owned)
             .unwrap_or("<unknown>".to_string());
-
-        Report::build(ReportKind::Error, &path, offset)
-            .with_message("parse error".to_string())
-            .with_label(Label::new((&path, offset..offset + 1)).with_message(msg))
-            .finish()
-            .eprint((&path, Source::from(self.source)))
-            .unwrap();
+        path
     }
 }

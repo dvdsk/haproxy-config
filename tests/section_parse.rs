@@ -6,14 +6,8 @@ macro_rules! test_file {
         fn $name() {
             let file = include_str!(std::concat!("from_gh/", $path, ".cfg"));
 
-            match parse_sections(&file) {
-                Err(e) => {
-                    let e = e.with_path($path);
-                    e.eprint();
-                    panic!("{}", e.inner);
-                }
-                Ok(lines) => println!("{lines:#?}"),
-            }
+            let lines = parse_sections(&file).unwrap();
+            println!("{lines:#?}");
         }
     };
 }
