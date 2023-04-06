@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use super::{Error, Acl};
-use crate::lines::{Address, BackendModifier, ConfigSection, Line};
+use crate::sections::{Address, BackendModifier, ConfigSection, Line};
 
 #[allow(unused)]
 #[derive(Debug)]

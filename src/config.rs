@@ -3,8 +3,8 @@
 use itertools::{Either, Itertools};
 use std::collections::HashMap;
 
-use crate::lines::{Line, Address};
-use super::lines::ConfigSection;
+use crate::sections::{Line, Address};
+use super::sections::ConfigSection;
 
 mod frontend;
 pub use frontend::Frontend;
@@ -51,6 +51,15 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
     type Error = Error<'a>;
 
     fn try_from(entries: &'a [ConfigSection<'a>]) -> Result<Self, Self::Error> {
+        let unknown_lines = entries.iter().filter_map(|l| match l {
+            ConfigSection::UnknownLine { line } => Some(*line),
+            _ => None,
+        }).collect_vec();
+        
+        if !unknown_lines.is_empty() {
+            return Err(Error::UnknownLines(unknown_lines));
+        }
+
         Ok(Config {
             global: Global::try_from(entries)?,
             default: Default::try_from(entries)?,
@@ -64,6 +73,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
 
 #[derive(Debug)]
 pub enum Error<'a> {
+    UnknownLines(Vec<&'a str>),
     MissingGlobal,
     MultipleGlobalEntries(Vec<&'a ConfigSection<'a>>),
     WrongGlobalLines(Vec<&'a Line<'a>>),

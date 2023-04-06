@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use super::{Error, Server, Acl};
-use crate::lines::{ConfigSection, Line};
+use crate::sections::{ConfigSection, Line};
 
 /// sockets accepting clients
 #[allow(unused)]

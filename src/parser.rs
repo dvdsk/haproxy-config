@@ -1,11 +1,9 @@
 use std::net::Ipv4Addr;
 
 use super::error::Error;
-use super::lines::*;
+use super::sections::*;
 
-pub fn parse_sections(
-    input: &str,
-) -> Result<Vec<ConfigSection<'_>>, Error<'_>> {
+pub fn parse_sections(input: &str) -> Result<Vec<ConfigSection>, Error<'_>> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
         source: input,
@@ -16,7 +14,12 @@ pub fn parse_sections(
 peg::parser! {
     grammar parser() for str {
         pub(super) rule configuration() -> Vec<ConfigSection<'input>>
-            = (config_comment() / config_blank() / global_section() / defaults_section() / userlist_section() / listen_section() / frontend_section() / backend_section())*
+            = (config_comment() / config_blank() / global_section() / defaults_section() / userlist_section() / listen_section() / frontend_section() / backend_section()/ unknown_line())*
+
+        rule unknown_line() -> ConfigSection<'input>
+            = line:$([^ '\n']+) line_break() {
+                ConfigSection::UnknownLine{ line }
+            }
 
         pub(super) rule global_section() -> ConfigSection<'input>
             = comment:global_header() lines:config_block() {
@@ -242,7 +245,7 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
-    use crate::lines::{Line, PasswordRef};
+    use crate::sections::{Line, PasswordRef};
 
     #[test]
     fn global() {

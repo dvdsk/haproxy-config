@@ -41,6 +41,9 @@ pub enum ConfigSection<'input> {
         name: &'input str,
         lines: Vec<Line<'input>>,
     },
+    UnknownLine {
+        line: &'input str,
+    },
 }
 
 #[derive(Debug)]

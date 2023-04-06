@@ -1,4 +1,4 @@
-use crate::lines::{ConfigSection, Line, PasswordRef};
+use crate::sections::{ConfigSection, Line, PasswordRef};
 use super::Error;
 
 #[allow(unused)]

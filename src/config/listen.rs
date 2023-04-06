@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::lines::{Address, ConfigSection, Line};
+use crate::sections::{Address, ConfigSection, Line};
 
 use super::{Bind, Error, Server, Acl};
 
