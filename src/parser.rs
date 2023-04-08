@@ -3,11 +3,22 @@ use std::net::Ipv4Addr;
 use super::error::Error;
 use super::sections::*;
 
+/// Parse a string of a haproxy config to a losely typed list of [sections](ConfigSection).
+/// Unknown sections will result in multiple UnknownLine entries.
+///
+/// You can build a more strongly typed [Config](super::Config) struct from the output, see example
+/// below.
+///
 /// # Examples
 /// ```
-/// # use haproxy_config_parser::parse_sections;
+/// use haproxy_config_parser::parse_sections;
+/// use haproxy_config_parser::Config;
+///
 /// let file = include_str!("../tests/medium_haproxy.cfg");
-/// parse_sections(file).unwrap();
+/// let sections = parse_sections(file).unwrap();
+///
+/// // Build a config from the sections
+/// let config = Config::try_from(sections.as_slice()).unwrap();
 /// ```
 pub fn parse_sections(input: &str) -> Result<Vec<ConfigSection>, Error<'_>> {
     parser::configuration(input).map_err(|e| Error {

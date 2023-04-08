@@ -1,21 +1,38 @@
 use std::net::Ipv4Addr;
 
+/// Parsed haproxy config preserving the order and comments.
+/// Does not support conditional blocks,
+/// these and future unsupported lines will be stored in the `UnknownLine` variant.
+///
+/// Information outside the header is containd in the correct order in the lines member. See the
+/// [Line] documentation.
 #[derive(Debug)]
 pub enum ConfigSection<'input> {
     BlankLine,
+    /// Comment on a seperate line not in a section
     Comment(&'input str),
+    /// The global section of a config.
     Global {
+        /// Comment on the same line as the section header
         comment: Option<&'input str>,
+        /// [Lines](Line) in this section.
         lines: Vec<Line<'input>>,
     },
+    /// The lines in the default section of a config.
     Default {
+        /// Comment on the same line as the section header
         comment: Option<&'input str>,
+        /// The default proxy stated after the section header
         proxy: Option<&'input str>,
+        /// [Lines](Line) in this section.
         lines: Vec<Line<'input>>,
     },
     Frontend {
+        /// Comment on the same line as the section header
         comment: Option<&'input str>,
+        /// The proxy stated after the section header
         proxy: &'input str,
+        /// [Lines](Line) in this section.
         lines: Vec<Line<'input>>,
         /// Optional address to which the frontend binds can be stated
         /// in the header, for example `frontend webserver *:80` instead
@@ -23,8 +40,11 @@ pub enum ConfigSection<'input> {
         header_addr: Option<(AddressRef<'input>, Option<&'input str>)>,
     },
     Listen {
+        /// Comment on the same line as the section header
         comment: Option<&'input str>,
+        /// The proxy stated after the section header
         proxy: &'input str,
+        /// [Lines](Line) in this section.
         lines: Vec<Line<'input>>,
         /// Optional address to which the listen binds can be stated
         /// in the header, for example `frontend webserver *:80` instead
@@ -32,16 +52,23 @@ pub enum ConfigSection<'input> {
         header_addr: Option<(AddressRef<'input>, Option<&'input str>)>,
     },
     Backend {
+        /// Comment on the same line as the section header
         comment: Option<&'input str>,
+        /// The proxy stated after the section header
         proxy: &'input str,
+        /// [Lines](Line) in this section.
         lines: Vec<Line<'input>>,
     },
     Userlist {
+        /// Comment on the same line as the section header
         comment: Option<&'input str>,
+        /// Name of this userlist
         name: &'input str,
+        /// [Lines](Line) in this section.
         lines: Vec<Line<'input>>,
     },
     UnknownLine {
+        /// A line that could not be parsed.
         line: &'input str,
     },
 }
@@ -132,6 +159,8 @@ pub enum Line<'input> {
         condition: Option<&'input str>,
         comment: Option<&'input str>,
     },
+    /// This usually refers to a haproxy user group however if it is in the global section of a
+    /// config it is the systemuser haproxy will try to run as after starting up.
     Group {
         name: &'input str,
         users: Vec<&'input str>,
