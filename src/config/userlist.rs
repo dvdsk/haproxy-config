@@ -1,14 +1,12 @@
 use crate::sections::{ConfigSection, Line, PasswordRef};
 use super::Error;
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Group {
-    name: String,
-    users: Vec<String>,
+    pub name: String,
+    pub users: Vec<String>,
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub enum Password {
     Secure(String),
@@ -24,19 +22,17 @@ impl From<&PasswordRef<'_>> for Password {
     }
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct User {
-    name: String,
-    password: Password,
+    pub name: String,
+    pub password: Password,
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Userlist {
-    name: String,
-    groups: Vec<Group>,
-    users: Vec<User>,
+    pub name: String,
+    pub groups: Vec<Group>,
+    pub users: Vec<User>,
 }
 
 impl<'a> TryFrom<&'a ConfigSection<'a>> for Userlist {

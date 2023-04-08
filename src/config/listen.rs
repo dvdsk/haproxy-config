@@ -4,15 +4,14 @@ use crate::sections::{Address, ConfigSection, Line};
 
 use super::{Bind, Error, Server, Acl};
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Listen {
-    name: String,
-    bind: Bind,
-    config: HashMap<String, Option<String>>,
-    options: HashMap<String, Option<String>>,
-    acls: HashSet<Acl>,
-    servers: Vec<Server>,
+    pub name: String,
+    pub bind: Bind,
+    pub config: HashMap<String, Option<String>>,
+    pub options: HashMap<String, Option<String>>,
+    pub acls: HashSet<Acl>,
+    pub servers: Vec<Server>,
 }
 
 impl<'a> TryFrom<&'a ConfigSection<'a>> for Listen {

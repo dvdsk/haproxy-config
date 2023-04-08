@@ -4,14 +4,13 @@ use super::{Error, Server, Acl};
 use crate::sections::{ConfigSection, Line};
 
 /// sockets accepting clients
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Backend {
-    name: String,
-    config: HashMap<String, Option<String>>,
-    options: HashMap<String, Option<String>>,
-    acls: HashSet<Acl>,
-    servers: Vec<Server>,
+    pub name: String,
+    pub config: HashMap<String, Option<String>>,
+    pub options: HashMap<String, Option<String>>,
+    pub acls: HashSet<Acl>,
+    pub servers: Vec<Server>,
 }
 
 impl<'a> TryFrom<&'a ConfigSection<'a>> for Backend {

@@ -9,9 +9,9 @@ use std::collections::HashMap;
 pub struct Global {
     pub config: HashMap<String, Option<String>>,
     /// system user to run haproxy as
-    user: Option<String>,
+    pub user: Option<String>,
     /// system group to run haproxy as
-    group: Option<String>,
+    pub group: Option<String>,
 }
 
 impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
@@ -70,7 +70,10 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
     }
 }
 
-fn extract_sys_user_group<'a>(mut user_lines: Vec<&'a Line>, mut group_lines: Vec<&'a Line>) -> Result<(Option<String>, Option<String>), Error<'a>> {
+fn extract_sys_user_group<'a>(
+    mut user_lines: Vec<&'a Line>,
+    mut group_lines: Vec<&'a Line>,
+) -> Result<(Option<String>, Option<String>), Error<'a>> {
     if user_lines.len() > 1 {
         return Err(Error::MultipleSysUsers(user_lines));
     }
@@ -80,7 +83,14 @@ fn extract_sys_user_group<'a>(mut user_lines: Vec<&'a Line>, mut group_lines: Ve
 
     let user = match user_lines.pop() {
         None => None,
-        Some(line @ Line::User{name, password, groups, ..}) => {
+        Some(
+            line @ Line::User {
+                name,
+                password,
+                groups,
+                ..
+            },
+        ) => {
             dbg!(password);
             // if !password.is_empty() {
             //     return Err(Error::SysUserHasPassword(line));
@@ -91,18 +101,18 @@ fn extract_sys_user_group<'a>(mut user_lines: Vec<&'a Line>, mut group_lines: Ve
             }
             Some(name.to_string())
         }
-        _other => unreachable!()
+        _other => unreachable!(),
     };
 
     let group = match group_lines.pop() {
         None => None,
-        Some(line @ Line::Group{name, users, ..}) => {
+        Some(line @ Line::Group { name, users, .. }) => {
             if !users.is_empty() {
                 return Err(Error::SysGroupHasUsers(line));
             }
             Some(name.to_string())
         }
-        _other => unreachable!()
+        _other => unreachable!(),
     };
 
     Ok((user, group))

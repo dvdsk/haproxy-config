@@ -3,31 +3,28 @@ use std::collections::{HashMap, HashSet};
 use super::{Error, Acl};
 use crate::sections::{Address, BackendModifier, ConfigSection, Line};
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Backend {
-    name: String,
-    modifier: Option<BackendModifier>,
-    condition: Option<String>,
+    pub name: String,
+    pub modifier: Option<BackendModifier>,
+    pub condition: Option<String>,
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Bind {
-    addr: Address,
-    config: Option<String>,
+    pub addr: Address,
+    pub config: Option<String>,
 }
 
 /// sockets accepting clients
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Frontend {
-    name: String,
-    config: HashMap<String, Option<String>>,
-    options: HashMap<String, Option<String>>,
-    acls: HashSet<Acl>,
-    backends: Vec<Backend>,
-    bind: Bind,
+    pub name: String,
+    pub config: HashMap<String, Option<String>>,
+    pub options: HashMap<String, Option<String>>,
+    pub acls: HashSet<Acl>,
+    pub backends: Vec<Backend>,
+    pub bind: Bind,
 }
 
 impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {

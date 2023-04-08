@@ -19,34 +19,31 @@ pub use userlist::Userlist;
 
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub struct Acl {
-    name: String,
-    rule: String,
+    pub name: String,
+    pub rule: String,
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Bind {
-    addr: Address,
-    config: Option<String>,
+    pub addr: Address,
+    pub config: Option<String>,
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Server {
-    name: String,
-    addr: Address,
-    option: Option<String>,
+    pub name: String,
+    pub addr: Address,
+    pub option: Option<String>,
 }
 
-#[allow(unused)]
 #[derive(Debug)]
 pub struct Config {
-    global: Global,
-    default: Default,
-    frontends: Vec<Frontend>,
-    backends: Vec<Backend>,
-    listen: Vec<Listen>,
-    userlists: Vec<Userlist>,
+    pub global: Global,
+    pub default: Default,
+    pub frontends: Vec<Frontend>,
+    pub backends: Vec<Backend>,
+    pub listen: Vec<Listen>,
+    pub userlists: Vec<Userlist>,
 }
 
 impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
@@ -96,12 +93,11 @@ pub enum Error<'a> {
 }
 
 
-#[allow(unused)]
 #[derive(Debug, Default)]
 pub struct Default {
-    proxy: Option<String>,
-    config: HashMap<String, Option<String>>,
-    options: HashMap<String, Option<String>>,
+    pub proxy: Option<String>,
+    pub config: HashMap<String, Option<String>>,
+    pub options: HashMap<String, Option<String>>,
 }
 
 impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Default {
