@@ -1,11 +1,13 @@
 // http://docs.haproxy.org/2.7/configuration.html#4.1
 
-use itertools::{Either, Itertools};
+use itertools::{Itertools};
 use std::collections::HashMap;
 
 use crate::sections::{Line, Address};
 use super::sections::ConfigSection;
 
+mod global;
+pub use global::Global;
 mod frontend;
 pub use frontend::Frontend;
 mod backend;
@@ -87,56 +89,12 @@ pub enum Error<'a> {
     WrongBackendLines(Vec<&'a Line<'a>>),
     WrongUserlistLines(Vec<&'a Line<'a>>),
     WrongDefaultLines(Vec<&'a Line<'a>>),
+    MultipleSysUsers(Vec<&'a Line<'a>>),
+    MultipleSysGroups(Vec<&'a Line<'a>>),
+    SysUserHasGroups(&'a Line<'a>),
+    SysGroupHasUsers(&'a Line<'a>),
 }
 
-#[derive(Debug, Default)]
-pub struct Global {
-    pub config: HashMap<String, Option<String>>,
-}
-
-impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
-    type Error = Error<'a>;
-
-    fn try_from(entries: &'a [ConfigSection<'a>]) -> Result<Self, Self::Error> {
-        let global_entries: Vec<_> = entries
-            .iter()
-            .filter(|e| matches!(e, ConfigSection::Global { .. }))
-            .collect();
-
-        if global_entries.len() > 1 {
-            return Err(Error::MultipleGlobalEntries(global_entries));
-        }
-
-        let Some(ConfigSection::Global{ lines, ..}) = global_entries.first() else {
-            return Ok(Global::default());
-        };
-
-        let (config, other) = extract_config(lines);
-
-        if !other.is_empty() {
-            return Err(Error::WrongGlobalLines(other));
-        }
-
-        Ok(Global { config })
-    }
-}
-
-fn extract_config<'a>(
-    lines: &'a [Line<'a>],
-) -> (HashMap<String, Option<String>>, Vec<&'a Line<'a>>) {
-    let (config, other): (HashMap<_, Option<_>>, Vec<_>) = lines
-        .iter()
-        .filter(|l| !matches!(l, Line::Blank | Line::Comment(_)))
-        .partition_map(|l| match l {
-            Line::Config { key, value, .. } => {
-                let key = key.to_string();
-                let value = value.map(ToOwned::to_owned);
-                Either::Left((key, value))
-            }
-            _other => Either::Right(_other),
-        });
-    (config, other)
-}
 
 #[allow(unused)]
 #[derive(Debug, Default)]

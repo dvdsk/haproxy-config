@@ -46,7 +46,7 @@ pub enum ConfigSection<'input> {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum HostRef<'input> {
     Ipv4(Ipv4Addr),
     Dns(&'input str),
@@ -79,7 +79,7 @@ impl From<&AddressRef<'_>> for Address {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct AddressRef<'input> {
     pub host: HostRef<'input>,
     pub port: Option<u16>,

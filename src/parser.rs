@@ -7,10 +7,7 @@ use super::sections::*;
 /// ```
 /// # use haproxy_config_parser::parse_sections;
 /// let file = include_str!("../tests/medium_haproxy.cfg");
-/// if let Err(e) = parse_sections(file) {
-///     e.print();
-///     panic!("{}", e.inner);
-/// }
+/// parse_sections(file).unwrap();
 /// ```
 pub fn parse_sections(input: &str) -> Result<Vec<ConfigSection>, Error<'_>> {
     parser::configuration(input).map_err(|e| Error {
@@ -95,8 +92,8 @@ peg::parser! {
                 Line::Option { keyword, value, comment }
             }
 
-        rule bind_line() -> Line<'input>
-            = whitespace() "bind" whitespaceplus() addr:service_address() value:value()? comment:comment_text()? line_break() eof()? {
+        pub(super) rule bind_line() -> Line<'input>
+            = whitespace() "bind" whitespaceplus() addr:service_address() value:value()? whitespace() comment:comment_text()? line_break() eof()? {
                 Line::Bind { addr, value, comment }
             }
 
@@ -254,7 +251,7 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
-    use crate::sections::{Line, PasswordRef};
+    use crate::sections::{AddressRef, Line, PasswordRef};
 
     #[test]
     fn global() {
@@ -323,6 +320,24 @@ mod tests {
             Line::Group { name, users, .. } => {
                 assert!(users.is_empty());
                 assert_eq!(name, "G1");
+            }
+            _ => panic!("group not correct, line: {:?}", line),
+        }
+    }
+
+    #[test]
+    fn bind_with_comment() {
+        let line = parser::bind_line(include_str!("bind_with_comment.txt")).unwrap();
+        match line {
+            Line::Bind { addr, value, .. } => {
+                assert_eq!(value, None);
+                assert_eq!(
+                    addr,
+                    AddressRef {
+                        host: crate::sections::HostRef::Wildcard,
+                        port: Some(80)
+                    }
+                );
             }
             _ => panic!("group not correct, line: {:?}", line),
         }
