@@ -123,8 +123,8 @@ peg::parser! {
             }
 
         pub(super) rule group_line() -> Line<'input>
-            = whitespace() "group" whitespace() name:group_name() whitespace() users:users() comment:comment_text()? line_break() eof()? {
-                Line::Group { name, users, comment }
+            = whitespace() "group" whitespace() name:group_name() whitespace() users:users()? comment:comment_text()? line_break() eof()? {
+                Line::Group { name, users: users.unwrap_or_else(Vec::new), comment }
             }
 
         rule password_type() -> bool
@@ -312,7 +312,19 @@ mod tests {
         let line = parser::group_line(include_str!("group_with_users.txt")).unwrap();
         match line {
             Line::Group { users, .. } if users == vec!["haproxy"] => (),
-            _ => panic!("groups not correct, line: {:?}", line),
+            _ => panic!("group not correct, line: {:?}", line),
+        }
+    }
+
+    #[test]
+    fn group_with_single_user() {
+        let line = parser::group_line(include_str!("group_with_single_user.txt")).unwrap();
+        match line {
+            Line::Group { name, users, .. } => {
+                assert!(users.is_empty());
+                assert_eq!(name, "G1");
+            }
+            _ => panic!("group not correct, line: {:?}", line),
         }
     }
 }
