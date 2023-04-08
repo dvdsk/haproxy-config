@@ -18,7 +18,7 @@ pub enum ConfigSection<'input> {
         proxy: &'input str,
         lines: Vec<Line<'input>>,
         /// Optional address to which the frontend binds can be stated
-        /// in the header, for example `frontend webserver *:80` instead 
+        /// in the header, for example `frontend webserver *:80` instead
         /// of a bind line, any optional config for the bind follows
         header_addr: Option<(AddressRef<'input>, Option<&'input str>)>,
     },
@@ -27,7 +27,7 @@ pub enum ConfigSection<'input> {
         proxy: &'input str,
         lines: Vec<Line<'input>>,
         /// Optional address to which the listen binds can be stated
-        /// in the header, for example `frontend webserver *:80` instead 
+        /// in the header, for example `frontend webserver *:80` instead
         /// of a bind line, any optional config for the bind follows
         header_addr: Option<(AddressRef<'input>, Option<&'input str>)>,
     },
@@ -141,15 +141,17 @@ pub enum Line<'input> {
         name: &'input str,
         password: PasswordRef<'input>,
         groups: Vec<&'input str>,
-        comment: Option<&'input str>, 
+        comment: Option<&'input str>,
+    },
+    /// A global paramater describing the system user haproxy should run as
+    SysUser {
+        name: &'input str,
     },
     Config {
         key: &'input str,
         value: Option<&'input str>,
-        comment: Option<&'input str>, 
+        comment: Option<&'input str>,
     },
     Comment(&'input str),
     Blank,
 }
-
-

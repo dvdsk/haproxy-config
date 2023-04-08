@@ -1,6 +1,5 @@
 // http://docs.haproxy.org/2.7/configuration.html#4.1
 
-use itertools::{Itertools};
 use std::collections::HashMap;
 
 use crate::sections::{Line, Address};
@@ -50,10 +49,10 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Config {
     type Error = Error<'a>;
 
     fn try_from(entries: &'a [ConfigSection<'a>]) -> Result<Self, Self::Error> {
-        let unknown_lines = entries.iter().filter_map(|l| match l {
+        let unknown_lines: Vec<_> = entries.iter().filter_map(|l| match l {
             ConfigSection::UnknownLine { line } => Some(*line),
             _ => None,
-        }).collect_vec();
+        }).collect();
         
         if !unknown_lines.is_empty() {
             return Err(Error::UnknownLines(unknown_lines));

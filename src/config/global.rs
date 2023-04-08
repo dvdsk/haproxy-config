@@ -36,7 +36,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
         let mut group_lines = Vec::new();
         let mut other = Vec::new();
 
-        for line in lines
+        for line in dbg!(lines)
             .iter()
             .filter(|l| !matches!(l, Line::Blank | Line::Comment(_)))
         {
@@ -46,7 +46,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
                     let value = value.map(ToOwned::to_owned);
                     config.insert(key, value);
                 }
-                Line::User { .. } => {
+                Line::SysUser { .. } => {
                     user_lines.push(line);
                 }
                 Line::Group { .. } => {
@@ -60,6 +60,7 @@ impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
             return Err(Error::WrongGlobalLines(other));
         }
 
+        dbg!(&user_lines);
         let (user, group) = extract_sys_user_group(user_lines, group_lines)?;
 
         Ok(Global {
@@ -83,24 +84,7 @@ fn extract_sys_user_group<'a>(
 
     let user = match user_lines.pop() {
         None => None,
-        Some(
-            line @ Line::User {
-                name,
-                password,
-                groups,
-                ..
-            },
-        ) => {
-            dbg!(password);
-            // if !password.is_empty() {
-            //     return Err(Error::SysUserHasPassword(line));
-            // }
-            // todo!();
-            if !groups.is_empty() {
-                return Err(Error::SysUserHasGroups(line));
-            }
-            Some(name.to_string())
-        }
+        Some(Line::SysUser { name, .. }) => Some(name.to_string()),
         _other => unreachable!(),
     };
 

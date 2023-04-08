@@ -79,7 +79,7 @@ peg::parser! {
             = _ "backend" _ p:proxy_name() _ value()? c:comment_text()? line_break() {(p,c)}
 
         rule config_block() -> Vec<Line<'input>>
-            = e:(server_line() / option_line() / bind_line() / acl_line() / backend_line() / group_line() / user_line() / config_line() / comment_line() / blank_line())* { e }
+            = e:(server_line() / option_line() / bind_line() / acl_line() / backend_line() / group_line() / user_line() / system_user_line() / config_line() / comment_line() / blank_line())* { e }
 
         rule server_line() -> Line<'input>
             = _ "server" _ name:server_name() _ addr:service_address() option:value()? comment:comment_text()? line_break() eof()? {
@@ -134,6 +134,13 @@ peg::parser! {
                     *group = group.trim();
                 }
                 groups
+            }
+
+        rule system_user_line() -> Line<'input>
+            = _ "user" _ name:user_name() _ comment:comment_text()? line_break() eof()? {
+                Line::SysUser {
+                    name,
+                }
             }
 
         pub(super) rule user_line() -> Line<'input>
