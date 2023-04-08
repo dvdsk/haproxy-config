@@ -58,47 +58,47 @@ peg::parser! {
             }
 
         rule global_header() -> Option<&'input str>
-            = whitespace() "global" whitespace() c:comment_text()? line_break() { c }
+            = _ "global" _ c:comment_text()? line_break() { c }
 
         rule userlist_header() -> (&'input str, Option<&'input str>)
-            = whitespace() "userlist" whitespace() p:proxy_name() c:comment_text()? line_break() {(p,c)}
+            = _ "userlist" _ p:proxy_name() c:comment_text()? line_break() {(p,c)}
 
         rule defaults_header() -> (Option<&'input str>, Option<&'input str>)
-            = whitespace() "defaults" whitespace() p:proxy_name()? whitespace() c:comment_text()? line_break() {(p,c)}
+            = _ "defaults" _ p:proxy_name()? _ c:comment_text()? line_break() {(p,c)}
 
         rule header_bind() -> (AddressRef<'input>, Option<&'input str>)
             = s:service_address() v:value()? {(s, v)}
 
         rule listen_header() -> (&'input str, Option<&'input str>, Option<(AddressRef<'input>, Option<&'input str>)>)
-            = whitespace() "listen" whitespace() p:proxy_name() whitespace() hb:header_bind()? c:comment_text()? line_break() {(p, c, hb)}
+            = _ "listen" _ p:proxy_name() _ hb:header_bind()? c:comment_text()? line_break() {(p, c, hb)}
 
         rule frontend_header() -> (&'input str, Option<&'input str>, Option<(AddressRef<'input>, Option<&'input str>)>)
-            = whitespace() "frontend" whitespace() p:proxy_name() whitespace() hb:header_bind()? c:comment_text()? line_break() {(p, c, hb)}
+            = _ "frontend" _ p:proxy_name() _ hb:header_bind()? c:comment_text()? line_break() {(p, c, hb)}
 
         pub(super) rule backend_header() -> (&'input str, Option<&'input str>)
-            = whitespace() "backend" whitespace() p:proxy_name() whitespace() value()? c:comment_text()? line_break() {(p,c)}
+            = _ "backend" _ p:proxy_name() _ value()? c:comment_text()? line_break() {(p,c)}
 
         rule config_block() -> Vec<Line<'input>>
             = e:(server_line() / option_line() / bind_line() / acl_line() / backend_line() / group_line() / user_line() / config_line() / comment_line() / blank_line())* { e }
 
         rule server_line() -> Line<'input>
-            = whitespace() "server" whitespace() name:server_name() whitespace() addr:service_address() option:value()? comment:comment_text()? line_break() eof()? {
+            = _ "server" _ name:server_name() _ addr:service_address() option:value()? comment:comment_text()? line_break() eof()? {
                 // let option = option.map(str::trim);
                 Line::Server { name, addr, option, comment }
             }
 
         rule option_line() -> Line<'input>
-            = whitespace() "option" whitespace() keyword:keyword() value:value()? comment:comment_text()? line_break() eof()? {
+            = _ "option" _ keyword:keyword() value:value()? comment:comment_text()? line_break() eof()? {
                 Line::Option { keyword, value, comment }
             }
 
         pub(super) rule bind_line() -> Line<'input>
-            = whitespace() "bind" whitespaceplus() addr:service_address() value:value()? whitespace() comment:comment_text()? line_break() eof()? {
+            = _ "bind" whitespaceplus() addr:service_address() value:value()? _ comment:comment_text()? line_break() eof()? {
                 Line::Bind { addr, value, comment }
             }
 
         rule acl_line() -> Line<'input>
-        = whitespace() "acl" whitespace() name:acl_name() r:value()? comment:comment_text()? line_break() eof()? {
+        = _ "acl" _ name:acl_name() r:value()? comment:comment_text()? line_break() eof()? {
             Line::Acl { name, rule: r, comment }
         }
 
@@ -106,7 +106,7 @@ peg::parser! {
         = "if" { BackendModifier::If } / "unless" { BackendModifier::Unless }
 
         rule backend_line() -> Line<'input>
-            = whitespace() ("use_backend" / "default_backend") whitespace() name:backend_name() whitespace() modifier:modifier()? whitespace() condition:backend_condition()? comment:comment_text()? line_break() eof()? {
+            = _ ("use_backend" / "default_backend") _ name:backend_name() _ modifier:modifier()? _ condition:backend_condition()? comment:comment_text()? line_break() eof()? {
                 Line::Backend {name, modifier, condition, comment }
             }
 
@@ -120,7 +120,7 @@ peg::parser! {
             }
 
         pub(super) rule group_line() -> Line<'input>
-            = whitespace() "group" whitespace() name:group_name() whitespace() users:users()? comment:comment_text()? line_break() eof()? {
+            = _ "group" _ name:group_name() _ users:users()? comment:comment_text()? line_break() eof()? {
                 Line::Group { name, users: users.unwrap_or_else(Vec::new), comment }
             }
 
@@ -137,7 +137,7 @@ peg::parser! {
             }
 
         pub(super) rule user_line() -> Line<'input>
-            = whitespace() "user" whitespace() name:user_name() whitespace() secure:password_type() whitespaceplus() password:password() groups:groups()? comment:comment_text()? line_break() eof()? {
+            = _ "user" _ name:user_name() _ secure:password_type() whitespaceplus() password:password() groups:groups()? comment:comment_text()? line_break() eof()? {
                 let password = if secure {
                     PasswordRef::Secure(password)
                 } else {
@@ -148,21 +148,21 @@ peg::parser! {
             }
 
         pub(super) rule config_line() -> Line<'input>
-            = whitespace() !("defaults" / "global" / "userlist" / "listen" / "frontend" / "backend" / "server") key:keyword() value:value()? comment:comment_text()? line_break() eof()? {
+            = _ !("defaults" / "global" / "userlist" / "listen" / "frontend" / "backend" / "server") key:keyword() value:value()? comment:comment_text()? line_break() eof()? {
                 Line::Config { key, value, comment }
             }
 
         rule config_comment() -> ConfigSection<'input>
-            = whitespace() t:comment_text() line_break() eof()? { ConfigSection::Comment(t) }
+            = _ t:comment_text() line_break() eof()? { ConfigSection::Comment(t) }
 
         rule comment_line() -> Line<'input>
-            = whitespace() t:comment_text() line_break() eof()? { Line::Comment(t) }
+            = _ t:comment_text() line_break() eof()? { Line::Comment(t) }
 
         rule blank_line() -> Line<'input>
-            = whitespace() line_break() eof()? { Line::Blank }
+            = _ line_break() eof()? { Line::Blank }
 
         rule config_blank() -> ConfigSection<'input>
-            = whitespace() line_break() eof()? { ConfigSection::BlankLine }
+            = _ line_break() eof()? { ConfigSection::BlankLine }
 
         pub(super) rule comment_text() -> &'input str
             = "#" s:$(char()*) &(line_break() / eof()) { s }
@@ -174,7 +174,7 @@ peg::parser! {
             = quiet!{![_]}
 
         rule keyword() -> &'input str
-            = $((("errorfile" / "timeout") whitespace())? ['a'..='z' | '0'..='9' | '-' | '_' | '.']+)
+            = $((("errorfile" / "timeout") _)? ['a'..='z' | '0'..='9' | '-' | '_' | '.']+)
 
         rule alphanumeric_plus() -> &'input str
             = $(['a'..='z' | 'A'..='Z' | '0'..='9' | '-' | '_' | '.' | ':']+)
@@ -239,8 +239,8 @@ peg::parser! {
         rule char()
             = [^ '\n']
 
-        pub(super) rule whitespace()
-            = quiet!{[' ' | '\t']*}
+        rule _
+            = [' ' | '\t']*
 
         rule whitespaceplus()
             = quiet!{[' ' | '\t']+}
@@ -266,12 +266,6 @@ mod tests {
     #[test]
     fn backend_with_comment() {
         parser::backend_header(include_str!("backend_with_comment.txt")).unwrap();
-    }
-
-    #[test]
-    fn whitespace() {
-        let four_spaces = "    ";
-        parser::whitespace(four_spaces).unwrap();
     }
 
     #[test]
