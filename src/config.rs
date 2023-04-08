@@ -127,7 +127,6 @@ fn extract_config<'a>(
     let (config, other): (HashMap<_, Option<_>>, Vec<_>) = lines
         .iter()
         .filter(|l| !matches!(l, Line::Blank | Line::Comment(_)))
-        .inspect(|l| eprintln!("mmm ****, {:?}", l))
         .partition_map(|l| match l {
             Line::Config { key, value, .. } => {
                 let key = key.to_string();
