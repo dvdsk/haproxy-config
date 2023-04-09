@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use super::{Error, Server, Acl};
-use crate::sections::{ConfigSection, Line};
+use crate::sections::{Section, Line};
 
 /// sockets accepting clients
 #[derive(Debug)]
@@ -13,11 +13,11 @@ pub struct Backend {
     pub servers: Vec<Server>,
 }
 
-impl<'a> TryFrom<&'a ConfigSection<'a>> for Backend {
+impl<'a> TryFrom<&'a Section<'a>> for Backend {
     type Error = Error<'a>;
 
-    fn try_from(entry: &'a ConfigSection<'a>) -> Result<Self, Self::Error> {
-        let ConfigSection::Backend{ proxy, lines,  ..} = entry else {
+    fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
+        let Section::Backend{ proxy, lines,  ..} = entry else {
             unreachable!()
         };
 
@@ -81,10 +81,10 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Backend {
 }
 
 impl<'a> Backend {
-    pub fn parse_multiple(entries: &'a [ConfigSection<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
         entries
             .iter()
-            .filter(|e| matches!(e, ConfigSection::Backend { .. }))
+            .filter(|e| matches!(e, Section::Backend { .. }))
             .map(Backend::try_from)
             .collect()
     }

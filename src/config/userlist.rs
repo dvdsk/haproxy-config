@@ -1,4 +1,4 @@
-use crate::sections::{ConfigSection, Line, PasswordRef};
+use crate::sections::{Section, Line, PasswordRef};
 use super::Error;
 
 #[derive(Debug)]
@@ -35,11 +35,11 @@ pub struct Userlist {
     pub users: Vec<User>,
 }
 
-impl<'a> TryFrom<&'a ConfigSection<'a>> for Userlist {
+impl<'a> TryFrom<&'a Section<'a>> for Userlist {
     type Error = Error<'a>;
 
-    fn try_from(entry: &'a ConfigSection<'a>) -> Result<Self, Self::Error> {
-        let ConfigSection::Userlist{name, lines, ..} = entry else {
+    fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
+        let Section::Userlist{name, lines, ..} = entry else {
             unreachable!()
         };
 
@@ -77,10 +77,10 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Userlist {
 }
 
 impl<'a> Userlist {
-    pub fn parse_multiple(entries: &'a [ConfigSection<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
         entries
             .iter()
-            .filter(|e| matches!(e, ConfigSection::Userlist { .. }))
+            .filter(|e| matches!(e, Section::Userlist { .. }))
             .map(Userlist::try_from)
             .collect()
     }

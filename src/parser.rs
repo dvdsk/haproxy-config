@@ -1,6 +1,7 @@
 use std::net::Ipv4Addr;
 
-use super::error::Error;
+mod error;
+pub use error::Error;
 use super::sections::*;
 
 /// Parse a string of a haproxy config to a losely typed list of [sections](ConfigSection).
@@ -20,7 +21,7 @@ use super::sections::*;
 /// // Build a config from the sections
 /// let config = Config::try_from(sections.as_slice()).unwrap();
 /// ```
-pub fn parse_sections(input: &str) -> Result<Vec<ConfigSection>, Error<'_>> {
+pub fn parse_sections(input: &str) -> Result<Vec<Section>, Error<'_>> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
         source: input,
@@ -30,42 +31,42 @@ pub fn parse_sections(input: &str) -> Result<Vec<ConfigSection>, Error<'_>> {
 
 peg::parser! {
     grammar parser() for str {
-        pub(super) rule configuration() -> Vec<ConfigSection<'input>>
+        pub(super) rule configuration() -> Vec<Section<'input>>
             = (config_comment() / config_blank() / global_section() / defaults_section() / userlist_section() / listen_section() / frontend_section() / backend_section()/ unknown_line())*
 
-        rule unknown_line() -> ConfigSection<'input>
+        rule unknown_line() -> Section<'input>
             = line:$([^ '\n']+) line_break() {
-                ConfigSection::UnknownLine{ line }
+                Section::UnknownLine{ line }
             }
 
-        pub(super) rule global_section() -> ConfigSection<'input>
+        pub(super) rule global_section() -> Section<'input>
             = comment:global_header() lines:config_block() {
-                ConfigSection::Global{ comment, lines }
+                Section::Global{ comment, lines }
             }
 
-        rule defaults_section() -> ConfigSection<'input>
+        rule defaults_section() -> Section<'input>
             = h:defaults_header() lines:config_block() {
-                ConfigSection::Default{ comment: h.1, proxy: h.0, lines }
+                Section::Default{ comment: h.1, proxy: h.0, lines }
             }
 
-        rule userlist_section() -> ConfigSection<'input>
+        rule userlist_section() -> Section<'input>
             = h:userlist_header() lines:config_block() {
-                ConfigSection::Userlist{ comment: h.1, name: h.0 , lines}
+                Section::Userlist{ comment: h.1, name: h.0 , lines}
             }
 
-        rule listen_section() -> ConfigSection<'input>
+        rule listen_section() -> Section<'input>
             = h:listen_header() lines:config_block() {
-                ConfigSection::Listen{ comment: h.1, proxy: h.0, header_addr: h.2, lines}
+                Section::Listen{ comment: h.1, proxy: h.0, header_addr: h.2, lines}
             }
 
-        rule frontend_section() -> ConfigSection<'input>
+        rule frontend_section() -> Section<'input>
             = h:frontend_header() lines:config_block() {
-                ConfigSection::Frontend{ comment: h.1, proxy: h.0, header_addr: h.2, lines }
+                Section::Frontend{ comment: h.1, proxy: h.0, header_addr: h.2, lines }
             }
 
-        rule backend_section() -> ConfigSection<'input>
+        rule backend_section() -> Section<'input>
             = h:backend_header() lines:config_block() {
-                ConfigSection::Backend{ comment: h.1, proxy: h.0 , lines}
+                Section::Backend{ comment: h.1, proxy: h.0 , lines}
             }
 
         rule global_header() -> Option<&'input str>
@@ -94,7 +95,6 @@ peg::parser! {
 
         rule server_line() -> Line<'input>
             = _ "server" _ name:server_name() _ addr:service_address() option:value()? comment:comment_text()? line_break() eof()? {
-                // let option = option.map(str::trim);
                 Line::Server { name, addr, option, comment }
             }
 
@@ -170,8 +170,8 @@ peg::parser! {
                 Line::Config { key, value, comment }
             }
 
-        rule config_comment() -> ConfigSection<'input>
-            = _ t:comment_text() line_break() eof()? { ConfigSection::Comment(t) }
+        rule config_comment() -> Section<'input>
+            = _ t:comment_text() line_break() eof()? { Section::Comment(t) }
 
         rule comment_line() -> Line<'input>
             = _ t:comment_text() line_break() eof()? { Line::Comment(t) }
@@ -179,8 +179,8 @@ peg::parser! {
         rule blank_line() -> Line<'input>
             = _ line_break() eof()? { Line::Blank }
 
-        rule config_blank() -> ConfigSection<'input>
-            = _ line_break() eof()? { ConfigSection::BlankLine }
+        rule config_blank() -> Section<'input>
+            = _ line_break() eof()? { Section::BlankLine }
 
         pub(super) rule comment_text() -> &'input str
             = "#" s:$(char()*) &(line_break() / eof()) { s }

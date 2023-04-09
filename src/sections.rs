@@ -7,7 +7,7 @@ use std::net::Ipv4Addr;
 /// Information outside the header is containd in the correct order in the lines member. See the
 /// [Line] documentation.
 #[derive(Debug)]
-pub enum ConfigSection<'input> {
+pub enum Section<'input> {
     BlankLine,
     /// Comment on a seperate line not in a section
     Comment(&'input str),

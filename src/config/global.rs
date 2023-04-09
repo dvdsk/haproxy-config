@@ -1,7 +1,7 @@
 use crate::config::Error;
 use crate::sections::Line;
 
-use super::super::sections::ConfigSection;
+use super::super::sections::Section;
 
 use std::collections::HashMap;
 
@@ -14,20 +14,20 @@ pub struct Global {
     pub group: Option<String>,
 }
 
-impl<'a> TryFrom<&'a [ConfigSection<'a>]> for Global {
+impl<'a> TryFrom<&'a [Section<'a>]> for Global {
     type Error = Error<'a>;
 
-    fn try_from(entries: &'a [ConfigSection<'_>]) -> Result<Self, Self::Error> {
+    fn try_from(entries: &'a [Section<'_>]) -> Result<Self, Self::Error> {
         let global_entries: Vec<_> = entries
             .iter()
-            .filter(|e| matches!(e, ConfigSection::Global { .. }))
+            .filter(|e| matches!(e, Section::Global { .. }))
             .collect();
 
         if global_entries.len() > 1 {
             return Err(Error::MultipleGlobalEntries(global_entries));
         }
 
-        let Some(ConfigSection::Global{ lines, .. }) = global_entries.first() else {
+        let Some(Section::Global{ lines, .. }) = global_entries.first() else {
             return Ok(Global::default());
         };
 

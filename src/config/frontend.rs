@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use super::{Error, Acl};
-use crate::sections::{Address, BackendModifier, ConfigSection, Line};
+use crate::sections::{Address, BackendModifier, Section, Line};
 
 #[derive(Debug)]
 pub struct Backend {
@@ -27,11 +27,11 @@ pub struct Frontend {
     pub bind: Bind,
 }
 
-impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
+impl<'a> TryFrom<&'a Section<'a>> for Frontend {
     type Error = Error<'a>;
 
-    fn try_from(entry: &'a ConfigSection<'a>) -> Result<Self, Self::Error> {
-        let ConfigSection::Frontend{ proxy, lines, header_addr, ..} = entry else {
+    fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
+        let Section::Frontend{ proxy, lines, header_addr, ..} = entry else {
             unreachable!()
         };
 
@@ -113,10 +113,10 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Frontend {
 }
 
 impl<'a> Frontend {
-    pub fn parse_multiple(entries: &'a [ConfigSection<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
         entries
             .iter()
-            .filter(|e| matches!(e, ConfigSection::Frontend { .. }))
+            .filter(|e| matches!(e, Section::Frontend { .. }))
             .map(Frontend::try_from)
             .collect()
     }

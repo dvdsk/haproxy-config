@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::sections::{Address, ConfigSection, Line};
+use crate::sections::{Address, Section, Line};
 
 use super::{Bind, Error, Server, Acl};
 
@@ -14,11 +14,11 @@ pub struct Listen {
     pub servers: Vec<Server>,
 }
 
-impl<'a> TryFrom<&'a ConfigSection<'a>> for Listen {
+impl<'a> TryFrom<&'a Section<'a>> for Listen {
     type Error = Error<'a>;
 
-    fn try_from(entry: &'a ConfigSection<'a>) -> Result<Self, Self::Error> {
-        let ConfigSection::Listen{ proxy, lines, header_addr, ..} = entry else {
+    fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
+        let Section::Listen{ proxy, lines, header_addr, ..} = entry else {
             unreachable!()
         };
 
@@ -95,10 +95,10 @@ impl<'a> TryFrom<&'a ConfigSection<'a>> for Listen {
 }
 
 impl<'a> Listen {
-    pub fn parse_multiple(entries: &'a [ConfigSection<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
         entries
             .iter()
-            .filter(|e| matches!(e, ConfigSection::Listen { .. }))
+            .filter(|e| matches!(e, Section::Listen { .. }))
             .map(Listen::try_from)
             .collect()
     }

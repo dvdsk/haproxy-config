@@ -1,5 +1,12 @@
-use haproxy_config_parser::{parse_sections, ConfigSection};
-use std::path::PathBuf;
+use haproxy_config_parser::{parse_sections, Section};
+
+fn run_test(file: &str, path: &str) {
+    let sections = parse_sections(file).map_err(|e| e.with_path(path)).unwrap();
+
+    assert!(sections
+        .iter()
+        .any(|s| matches!(s, Section::UnknownLine { .. })))
+}
 
 macro_rules! test_file {
     ($name:ident) => {
@@ -7,13 +14,7 @@ macro_rules! test_file {
         fn $name() {
             let file = include_str!(std::concat!("unsupported/", stringify!($name), ".cfg"));
             let path = std::concat!(stringify!($name), "_haproxy.cfg");
-            let sections = parse_sections(file)
-                .map_err(|e| e.with_path(PathBuf::from(path)))
-                .unwrap();
-
-            assert!(sections
-                .iter()
-                .any(|s| matches!(s, ConfigSection::UnknownLine { .. })))
+            run_test(file, path);
         }
     };
 }
