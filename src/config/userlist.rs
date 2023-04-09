@@ -1,5 +1,7 @@
-use crate::sections::{Section, Line, PasswordRef};
-use super::Error;
+use std::collections::HashMap;
+
+use super::{Error, Name};
+use crate::sections::{Line, PasswordRef, Section};
 
 #[derive(Debug)]
 pub struct Group {
@@ -35,10 +37,11 @@ pub struct Userlist {
     pub users: Vec<User>,
 }
 
-impl<'a> TryFrom<&'a Section<'a>> for Userlist {
+type Pair = (Name, Userlist);
+impl<'a> TryFrom<&'a Section<'a>> for Pair {
     type Error = Error<'a>;
 
-    fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
+    fn try_from(entry: &'a Section<'a>) -> Result<Pair, Self::Error> {
         let Section::Userlist{name, lines, ..} = entry else {
             unreachable!()
         };
@@ -68,20 +71,23 @@ impl<'a> TryFrom<&'a Section<'a>> for Userlist {
             return Err(Error::WrongUserlistLines(other));
         }
 
-        Ok(Userlist {
-            name: name.to_string(),
-            users,
-            groups,
-        })
+        Ok((
+            name.to_string(),
+            Userlist {
+                name: name.to_string(),
+                users,
+                groups,
+            },
+        ))
     }
 }
 
 impl<'a> Userlist {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error<'a>> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Userlist { .. }))
-            .map(Userlist::try_from)
+            .map(Pair::try_from)
             .collect()
     }
 }

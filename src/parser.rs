@@ -4,7 +4,7 @@ mod error;
 pub use error::Error;
 use super::sections::*;
 
-/// Parse a string of a haproxy config to a losely typed list of [sections](ConfigSection).
+/// Parse a string of a haproxy config to a losely typed list of [sections](Section).
 /// Unknown sections will result in multiple UnknownLine entries.
 ///
 /// You can build a more strongly typed [Config](super::Config) struct from the output, see example

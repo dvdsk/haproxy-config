@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
-use super::{Error, Acl};
-use crate::sections::{Address, BackendModifier, Section, Line};
+use super::{Acl, Error, Name};
+use crate::sections::{Address, BackendModifier, Line, Section};
 
 #[derive(Debug)]
 pub struct Backend {
@@ -27,7 +27,9 @@ pub struct Frontend {
     pub bind: Bind,
 }
 
-impl<'a> TryFrom<&'a Section<'a>> for Frontend {
+pub type Pair = (Name, Frontend);
+
+impl<'a> TryFrom<&'a Section<'a>> for Pair {
     type Error = Error<'a>;
 
     fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
@@ -98,26 +100,29 @@ impl<'a> TryFrom<&'a Section<'a>> for Frontend {
             (Some(_), Some(_)) => return Err(Error::HeaderAndBindLine),
         };
 
-        Ok(Frontend {
-            name: proxy.to_string(),
-            config,
-            options,
-            acls,
-            backends,
-            bind: Bind {
-                addr: Address::from(addr),
-                config: bind_config.map(ToOwned::to_owned),
+        Ok((
+            proxy.to_string(),
+            Frontend {
+                name: proxy.to_string(),
+                config,
+                options,
+                acls,
+                backends,
+                bind: Bind {
+                    addr: Address::from(addr),
+                    config: bind_config.map(ToOwned::to_owned),
+                },
             },
-        })
+        ))
     }
 }
 
 impl<'a> Frontend {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error<'a>> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Frontend { .. }))
-            .map(Frontend::try_from)
+            .map(Pair::try_from)
             .collect()
     }
 }

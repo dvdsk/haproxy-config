@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
-use super::{Error, Server, Acl};
-use crate::sections::{Section, Line};
+use super::{Acl, Error, Name, Server};
+use crate::sections::{Line, Section};
 
 /// sockets accepting clients
 #[derive(Debug)]
@@ -13,10 +13,11 @@ pub struct Backend {
     pub servers: Vec<Server>,
 }
 
-impl<'a> TryFrom<&'a Section<'a>> for Backend {
+type Pair = (Name, Backend);
+impl<'a> TryFrom<&'a Section<'a>> for Pair {
     type Error = Error<'a>;
 
-    fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
+    fn try_from(entry: &'a Section<'a>) -> Result<(Name, Backend), Self::Error> {
         let Section::Backend{ proxy, lines,  ..} = entry else {
             unreachable!()
         };
@@ -53,10 +54,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Backend {
                     });
                 }
                 Line::Server {
-                    name,
-                    addr,
-                    option,
-                    ..
+                    name, addr, option, ..
                 } => servers.push(Server {
                     name: name.to_string(),
                     addr: addr.into(),
@@ -70,22 +68,25 @@ impl<'a> TryFrom<&'a Section<'a>> for Backend {
             return Err(Error::WrongBackendLines(other));
         }
 
-        Ok(Backend {
-            name: proxy.to_string(),
-            config,
-            options,
-            acls,
-            servers,
-        })
+        Ok((
+            proxy.to_string(),
+            Backend {
+                name: proxy.to_string(),
+                config,
+                options,
+                acls,
+                servers,
+            },
+        ))
     }
 }
 
 impl<'a> Backend {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error<'a>> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Backend { .. }))
-            .map(Backend::try_from)
+            .map(Pair::try_from)
             .collect()
     }
 }

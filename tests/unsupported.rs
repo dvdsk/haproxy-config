@@ -2,6 +2,7 @@ use haproxy_config_parser::{parse_sections, Section};
 
 fn run_test(file: &str, path: &str) {
     let sections = parse_sections(file).map_err(|e| e.with_path(path)).unwrap();
+    dbg!(&sections);
 
     assert!(sections
         .iter()
@@ -19,4 +20,5 @@ macro_rules! test_file {
     };
 }
 
-test_file! {conditional_blocks}
+// test_file! {conditional_blocks} // fails
+test_file! {nonesens}

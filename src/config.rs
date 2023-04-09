@@ -35,14 +35,67 @@ pub struct Server {
     pub option: Option<String>,
 }
 
+pub type Name = String;
+
+/// A haproxy config where everything except config and options are fully typed. Can be created
+/// from a list of [Sections](Section) using [TryFrom]. This type does not borrow its input.
+///
+/// Returns Err if the config contains errors or sections or grammar we don not supported. For
+/// example conditional blocks.
+///
+/// # Examples
+/// Build a config from a list of just parsed sections.
+/// ```
+/// use haproxy_config_parser::parse_sections;
+/// use haproxy_config_parser::Config;
+///
+/// let file = include_str!("../tests/medium_haproxy.cfg");
+/// let sections = parse_sections(file).unwrap();
+///
+/// let config = Config::try_from(&sections).unwrap();
+/// ```
+///
+/// The same as above however we filter out unknown lines that
+/// would result in an error. This only works for lines
+/// above the first section as anything unknown after a section starts
+/// is parsed as a config option.
+/// ```
+/// use haproxy_config_parser::parse_sections;
+/// use haproxy_config_parser::{Config, Section};
+///
+/// let file = include_str!("../tests/unsupported/nonesens.cfg");
+/// let sections = dbg!(parse_sections(file).unwrap());
+/// let supported_sections: Vec<_> = sections.into_iter().filter(|s| !std::matches!(s,
+/// Section::UnknownLine{..})).collect();
+///
+/// let config = Config::try_from(&supported_sections).unwrap();
+/// 
+/// // `nonesens.cfg` contained the line `this will be seen as config unfortunatly`
+/// // its stats frontend. This is not recognised as an error unfortunatly:
+/// assert_eq!(config.frontends
+///     .get("stats")
+///     .unwrap()
+///     .config.get("this")
+///     .unwrap()
+///     .as_ref()
+///     .unwrap(), "will be seen as a config value unfortunatly");
+/// ```
 #[derive(Debug)]
 pub struct Config {
     pub global: Global,
     pub default: Default,
-    pub frontends: Vec<Frontend>,
-    pub backends: Vec<Backend>,
-    pub listen: Vec<Listen>,
-    pub userlists: Vec<Userlist>,
+    pub frontends: HashMap<Name, Frontend>,
+    pub backends: HashMap<Name, Backend>,
+    pub listen: HashMap<Name, Listen>,
+    pub userlists: HashMap<Name, Userlist>,
+}
+
+impl<'a> TryFrom<&'a Vec<Section<'a>>> for Config {
+    type Error = Error<'a>;
+
+    fn try_from(vec: &'a Vec<Section<'a>>) -> Result<Self, Self::Error> {
+        Config::try_from(vec.as_slice())
+    }
 }
 
 impl<'a> TryFrom<&'a [Section<'a>]> for Config {
@@ -71,6 +124,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Config {
         })
     }
 }
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error<'a> {
     #[error("Unknown lines in the input, you should filter these out if you want to ignore them")]

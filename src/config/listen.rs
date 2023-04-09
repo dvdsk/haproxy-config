@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::sections::{Address, Section, Line};
+use crate::sections::{Address, Line, Section};
 
-use super::{Bind, Error, Server, Acl};
+use super::{Acl, Bind, Error, Name, Server};
 
 #[derive(Debug)]
 pub struct Listen {
@@ -14,7 +14,8 @@ pub struct Listen {
     pub servers: Vec<Server>,
 }
 
-impl<'a> TryFrom<&'a Section<'a>> for Listen {
+type Pair = (Name, Listen);
+impl<'a> TryFrom<&'a Section<'a>> for Pair {
     type Error = Error<'a>;
 
     fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
@@ -80,26 +81,29 @@ impl<'a> TryFrom<&'a Section<'a>> for Listen {
             (Some(_), Some(_)) => return Err(Error::HeaderAndBindLine),
         };
 
-        Ok(Listen {
-            name: proxy.to_string(),
-            bind: Bind {
-                addr: Address::from(addr),
-                config: bind_config.map(ToOwned::to_owned),
+        Ok((
+            proxy.to_string(),
+            Listen {
+                name: proxy.to_string(),
+                bind: Bind {
+                    addr: Address::from(addr),
+                    config: bind_config.map(ToOwned::to_owned),
+                },
+                config,
+                servers,
+                options,
+                acls,
             },
-            config,
-            servers,
-            options,
-            acls,
-        })
+        ))
     }
 }
 
 impl<'a> Listen {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<Vec<Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error<'a>> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Listen { .. }))
-            .map(Listen::try_from)
+            .map(Pair::try_from)
             .collect()
     }
 }

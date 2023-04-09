@@ -36,7 +36,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
         let mut group_lines = Vec::new();
         let mut other = Vec::new();
 
-        for line in dbg!(lines)
+        for line in lines
             .iter()
             .filter(|l| !matches!(l, Line::Blank | Line::Comment(_)))
         {
@@ -60,7 +60,6 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
             return Err(Error::WrongGlobalLines(other));
         }
 
-        dbg!(&user_lines);
         let (user, group) = extract_sys_user_group(user_lines, group_lines)?;
 
         Ok(Global {
