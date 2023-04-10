@@ -1,9 +1,10 @@
 // http://docs.haproxy.org/2.7/configuration.html#4.1
 
 use std::collections::HashMap;
+use std::net::Ipv4Addr;
 
 use super::sections::Section;
-use crate::sections::{Address, Line};
+use crate::sections::{Line, AddressRef, HostRef};
 
 mod global;
 pub use global::Global;
@@ -14,7 +15,7 @@ pub use backend::Backend;
 mod listen;
 pub use listen::Listen;
 mod userlist;
-pub use userlist::Userlist;
+pub use userlist::{Userlist, User, Group, Password};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Acl {
@@ -33,6 +34,40 @@ pub struct Server {
     pub name: String,
     pub addr: Address,
     pub option: Option<String>,
+}
+
+/// Owned variant of [AddressRef]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub struct Address {
+    pub host: Host,
+    pub port: Option<u16>,
+}
+
+impl From<&AddressRef<'_>> for Address {
+    fn from(r: &AddressRef<'_>) -> Self {
+        Address {
+            host: Host::from(&r.host),
+            port: r.port,
+        }
+    }
+}
+
+/// Owned variant of [HostRef]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+pub enum Host {
+    Ipv4(Ipv4Addr),
+    Dns(String),
+    Wildcard,
+}
+
+impl From<&HostRef<'_>> for Host {
+    fn from(h: &HostRef<'_>) -> Self {
+        match h {
+            HostRef::Ipv4(a) => Host::Ipv4(*a),
+            HostRef::Dns(s) => Host::Dns(s.to_string()),
+            HostRef::Wildcard => Host::Wildcard,
+        }
+    }
 }
 
 pub type Name = String;
@@ -125,7 +160,9 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Config {
     }
 }
 
+/// Errors that can occure when transforming a list of [sections](Section) to a [Config]
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error<'a> {
     #[error("Unknown lines in the input, you should filter these out if you want to ignore them")]
     UnknownLines(Vec<&'a str>),

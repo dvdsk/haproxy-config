@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::sections::{Address, Line, Section};
+use crate::sections::{Line, Section};
 
-use super::{Acl, Bind, Error, Name, Server};
+use super::{Acl, Bind, Error, Name, Server, Address};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Listen {

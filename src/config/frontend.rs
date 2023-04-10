@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
-use super::{Acl, Error, Name, Bind};
-use crate::sections::{Address, BackendModifier, Line, Section};
+use super::{Acl, Error, Name, Bind, Address};
+use crate::sections::{BackendModifier, Line, Section};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Backend {
@@ -10,7 +10,6 @@ pub struct Backend {
     pub condition: Option<String>,
 }
 
-/// sockets accepting clients
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Frontend {
     pub name: String,

@@ -1,5 +1,5 @@
 [package]
-name = "haproxy-config-parser"
+name = "haproxy-config"
 version = "0.1.0"
 edition = "2021"
 

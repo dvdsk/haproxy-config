@@ -2,10 +2,8 @@ use std::net::Ipv4Addr;
 
 /// Parsed haproxy config preserving the order and comments.
 /// Does not support conditional blocks,
-/// these and future unsupported lines will be stored in the `UnknownLine` variant.
-///
-/// Information outside the header is containd in the correct order in the lines member. See the
-/// [Line] documentation.
+/// these and other unsupported lines will be stored in the [UnknownLine](Section::UnknownLine) variant.
+/// Information outside the header is containd in the correct order in the lines member. See the [Line] documentation.
 #[derive(Debug)]
 pub enum Section<'input> {
     BlankLine,
@@ -73,6 +71,7 @@ pub enum Section<'input> {
     },
 }
 
+/// See [Host](super::config::Host) for an owned variant.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum HostRef<'input> {
     Ipv4(Ipv4Addr),
@@ -80,56 +79,28 @@ pub enum HostRef<'input> {
     Wildcard,
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub enum Host {
-    Ipv4(Ipv4Addr),
-    Dns(String),
-    Wildcard,
-}
-
-impl From<&HostRef<'_>> for Host {
-    fn from(h: &HostRef<'_>) -> Self {
-        match h {
-            HostRef::Ipv4(a) => Host::Ipv4(*a),
-            HostRef::Dns(s) => Host::Dns(s.to_string()),
-            HostRef::Wildcard => Host::Wildcard,
-        }
-    }
-}
-
-impl From<&AddressRef<'_>> for Address {
-    fn from(r: &AddressRef<'_>) -> Self {
-        Address {
-            host: Host::from(&r.host),
-            port: r.port,
-        }
-    }
-}
-
+/// See [Address](super::config::Address) for an owned variant.
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct AddressRef<'input> {
     pub host: HostRef<'input>,
     pub port: Option<u16>,
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
-pub struct Address {
-    pub host: Host,
-    pub port: Option<u16>,
-}
-
+/// In combination with an [Acl](Line::Acl) forms the condition for picking a backend
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum BackendModifier {
     If,
     Unless,
 }
 
+/// See [Password](super::config::Password) for an owned variant.
 #[derive(Debug)]
 pub enum PasswordRef<'input> {
     Secure(&'input str),
     Insecure(&'input str),
 }
 
+/// Various lines that can occure in config [sections](Section)
 #[derive(Debug)]
 pub enum Line<'input> {
     Server {

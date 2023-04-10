@@ -30,8 +30,8 @@ println!("ports bound to by haproxy: {ports:?}")
 ```
 
 ### Features
- - Zero copy parsing to a config section based API which preserves the order of the config lines and any comments.
- - A stricter owned API that is easy to query.
+ - Zero copy parsing to a config section based representation which preserves the order of the config lines and any comments.
+ - A stricter owned representation that is easy to query.
  - Clear error reporting on parsing errors featuring a debug formatter that shows the problem with the config being parsed.
  - Panic free implementation, this crate will not crash your code.
 

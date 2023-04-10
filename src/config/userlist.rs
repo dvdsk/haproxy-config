@@ -9,6 +9,7 @@ pub struct Group {
     pub users: Vec<String>,
 }
 
+/// Owned variant of [PasswordRef]
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Password {
     Secure(String),

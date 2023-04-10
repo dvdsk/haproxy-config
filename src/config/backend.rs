@@ -3,7 +3,6 @@ use std::collections::{HashMap, HashSet};
 use super::{Acl, Error, Name, Server};
 use crate::sections::{Line, Section};
 
-/// sockets accepting clients
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Backend {
     pub name: String,
