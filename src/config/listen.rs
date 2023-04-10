@@ -4,7 +4,7 @@ use crate::sections::{Address, Line, Section};
 
 use super::{Acl, Bind, Error, Name, Server};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Listen {
     pub name: String,
     pub bind: Bind,

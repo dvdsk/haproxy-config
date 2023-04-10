@@ -4,7 +4,7 @@ use super::{Acl, Error, Name, Server};
 use crate::sections::{Line, Section};
 
 /// sockets accepting clients
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Backend {
     pub name: String,
     pub config: HashMap<String, Option<String>>,

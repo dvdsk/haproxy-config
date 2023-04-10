@@ -73,14 +73,14 @@ pub enum Section<'input> {
     },
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum HostRef<'input> {
     Ipv4(Ipv4Addr),
     Dns(&'input str),
     Wildcard,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Host {
     Ipv4(Ipv4Addr),
     Dns(String),
@@ -106,19 +106,19 @@ impl From<&AddressRef<'_>> for Address {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct AddressRef<'input> {
     pub host: HostRef<'input>,
     pub port: Option<u16>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Address {
     pub host: Host,
     pub port: Option<u16>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum BackendModifier {
     If,
     Unless,

@@ -1,23 +1,17 @@
 use std::collections::{HashMap, HashSet};
 
-use super::{Acl, Error, Name};
+use super::{Acl, Error, Name, Bind};
 use crate::sections::{Address, BackendModifier, Line, Section};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Backend {
     pub name: String,
     pub modifier: Option<BackendModifier>,
     pub condition: Option<String>,
 }
 
-#[derive(Debug)]
-pub struct Bind {
-    pub addr: Address,
-    pub config: Option<String>,
-}
-
 /// sockets accepting clients
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Frontend {
     pub name: String,
     pub config: HashMap<String, Option<String>>,

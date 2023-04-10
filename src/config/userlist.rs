@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use super::{Error, Name};
 use crate::sections::{Line, PasswordRef, Section};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Group {
     pub name: String,
     pub users: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Password {
     Secure(String),
     Insecure(String),
@@ -24,13 +24,13 @@ impl From<&PasswordRef<'_>> for Password {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct User {
     pub name: String,
     pub password: Password,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Userlist {
     pub name: String,
     pub groups: Vec<Group>,

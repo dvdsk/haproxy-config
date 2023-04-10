@@ -5,7 +5,7 @@ use super::super::sections::Section;
 
 use std::collections::HashMap;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Global {
     pub config: HashMap<String, Option<String>>,
     /// system user to run haproxy as

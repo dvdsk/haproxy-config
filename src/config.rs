@@ -16,19 +16,19 @@ pub use listen::Listen;
 mod userlist;
 pub use userlist::Userlist;
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Acl {
     pub name: String,
     pub rule: String,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Bind {
     pub addr: Address,
     pub config: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Server {
     pub name: String,
     pub addr: Address,
@@ -171,7 +171,7 @@ pub enum Error<'a> {
     SysGroupHasUsers(&'a Line<'a>),
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Default {
     pub proxy: Option<String>,
     pub config: HashMap<String, Option<String>>,
