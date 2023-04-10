@@ -15,7 +15,8 @@ fn main() {
     let config: config::Config = sections.as_slice().try_into().unwrap();
     println!("{config:#?}");
 
-    let frontend_addrs = config.frontends.values().map(|f| f.bind);
-    let listen_addr = config.listen.values().map(|f| f.bind);
-    let ports: Vec<_> = frontend_addrs.chain(listen_addr).map(|b| b.addr.port).collect();
+    let frontend_ports = config.frontends.values().map(|f| f.bind.addr.port);
+    let listen_ports = config.listen.values().map(|f| f.bind.addr.port);
+    let ports: Vec<_> = frontend_ports.chain(listen_ports).collect();
+    println!("ports bound to by haproxy: {ports:?}")
 }

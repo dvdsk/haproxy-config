@@ -1,3 +1,5 @@
+#![doc= include_str!("../Readme.md")]
+
 mod parser;
 pub mod sections;
 pub mod config;
