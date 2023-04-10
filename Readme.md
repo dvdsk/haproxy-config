@@ -1,10 +1,10 @@
-# HAProxy config parser
+# HAProxy config
 
 > **Parse HAProxy configs and easily query it**
 
-<!-- [![Crates.io](https://img.shields.io/crates/v/dbstruct?style=flat-square)](https://crates.io/crates/dbstruct) -->
-<!-- [![Crates.io](https://img.shields.io/crates/d/dbstruct?style=flat-square)](https://crates.io/crates/dbstruct) -->
-<!-- [![API](https://docs.rs/dbstruct/badge.svg)](https://docs.rs/dbstruct) -->
+[![Crates.io](https://img.shields.io/crates/v/dbstruct?style=flat-square)](https://crates.io/crates/haproxy_config)
+[![Crates.io](https://img.shields.io/crates/d/dbstruct?style=flat-square)](https://crates.io/crates/haproxy_config)
+[![API](https://docs.rs/dbstruct/badge.svg)](https://docs.rs/haproxy_config)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE-MIT)
 
 A parser for HAProxy config files. HAProxy's configs have many options to many to build a completely typed API. Such an API would also be quite fragile to changes in the config. This crate therefore presents a loosely typed config. 
@@ -14,8 +14,8 @@ It parses to sections consisting of [lines](sections::Line) from which a [Config
 ### Example
 List all the ports HAProxy will bind to from the config file.
 ```rust
-use haproxy_config_parser::parse_sections;
-use haproxy_config_parser::Config;
+use haproxy_config::parse_sections;
+use haproxy_config::Config;
 
 let file = include_str!("../tests/medium_haproxy.cfg");
 let sections = parse_sections(file).unwrap();

@@ -1,7 +1,7 @@
 use std::env;
 use std::fs::read_to_string;
 
-use haproxy_config_parser::{config, parse_sections};
+use haproxy_config::{config, parse_sections};
 
 fn main() {
     let path = env::args()

@@ -3,6 +3,19 @@ name = "haproxy-config"
 version = "0.1.0"
 edition = "2021"
 
+rust-version = "1.65" # let-else
+authors = ["David Kleingeld"]
+readme = "Readme.md"
+description = "Parse HAProxy configs and easily query it"
+repository = "https://github.com/dvdsk/haproxy-config"
+license = "MIT"
+keywords = ["haproxy", "config", "parser"]
+categories = ["parser-implementations"]
+exclude = [
+	".github/",
+	".gitignore",
+]
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

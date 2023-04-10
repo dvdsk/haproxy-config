@@ -81,8 +81,8 @@ pub type Name = String;
 /// # Examples
 /// Build a config from a list of just parsed sections.
 /// ```
-/// use haproxy_config_parser::parse_sections;
-/// use haproxy_config_parser::Config;
+/// use haproxy_config::parse_sections;
+/// use haproxy_config::Config;
 ///
 /// let file = include_str!("../tests/medium_haproxy.cfg");
 /// let sections = parse_sections(file).unwrap();
@@ -95,8 +95,8 @@ pub type Name = String;
 /// above the first section as anything unknown after a section starts
 /// is parsed as a config option.
 /// ```
-/// use haproxy_config_parser::parse_sections;
-/// use haproxy_config_parser::{Config, Section};
+/// use haproxy_config::parse_sections;
+/// use haproxy_config::{Config, Section};
 ///
 /// let file = include_str!("../tests/unsupported/nonesens.cfg");
 /// let sections = dbg!(parse_sections(file).unwrap());

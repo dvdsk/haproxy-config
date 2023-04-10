@@ -13,8 +13,8 @@ use super::sections::*;
 ///
 /// # Examples
 /// ```
-/// use haproxy_config_parser::parse_sections;
-/// use haproxy_config_parser::Config;
+/// use haproxy_config::parse_sections;
+/// use haproxy_config::Config;
 ///
 /// let file = include_str!("../tests/medium_haproxy.cfg");
 /// let sections = parse_sections(file).unwrap();

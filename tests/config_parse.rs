@@ -1,4 +1,4 @@
-use haproxy_config_parser::{parse_sections, Config};
+use haproxy_config::{parse_sections, Config};
 
 macro_rules! test_file {
     ($name:ident, $path:literal) => {
