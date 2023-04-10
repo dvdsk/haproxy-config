@@ -9,7 +9,7 @@
 
 A parser for HAProxy config files. HAProxy's configs have many options to many to build a completely typed API. Such an API would also be quite fragile to changes in the config. This crate therefore presents a loosely typed config. 
 
-It parses to sections consisting of [lines](sections::Line) from which a [Config] struct can be made. The struct follows the sections of a HAProxy config. Most options within the sections are presented in a [HashMap](std::collections::HashMap) as key value strings. The important settings have a fully typed API.
+It parses to sections consisting of [lines](sections::Line) from which a [Config](Config) struct can be made. The struct follows the sections of a HAProxy config. Most options within the sections are presented in a [HashMap](std::collections::HashMap) as key value strings. The important settings have a fully typed API.
 
 ### Example
 List all the ports HAProxy will bind to from the config file.
@@ -44,4 +44,4 @@ The crate will break on valid configs that feature [conditional blocks](https://
 This crate is far from complete but covers all my own use cases. I do however welcome any contributions.
 
 ### Thanks
-- builds upon the PEG grammar written by @imjoey for [pyhaproxy](https://github.com/imjoey/pyhaproxy)
+- builds upon the PEG grammar written by [Joey](https://github.com/imjoey) for [pyhaproxy](https://github.com/imjoey/pyhaproxy)
