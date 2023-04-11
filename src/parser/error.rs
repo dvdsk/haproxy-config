@@ -8,20 +8,20 @@ use peg::error::ParseError;
 use peg::str::LineCol;
 
 #[derive(Debug)]
-pub struct Error<'input> {
+pub struct Error {
     pub inner: ParseError<LineCol>,
-    pub source: &'input str,
+    pub source: String,
     pub path: Option<PathBuf>,
 }
 
-impl std::fmt::Display for Error<'_> {
+impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut bytes = Vec::new();
         {
             let buf = BufWriter::new(&mut bytes);
 
             self.report()
-                .write((self.path(), Source::from(self.source)), buf)
+                .write((self.path(), Source::from(&self.source)), buf)
                 .unwrap();
         }
 
@@ -30,13 +30,13 @@ impl std::fmt::Display for Error<'_> {
     }
 }
 
-impl std::error::Error for Error<'_> {
+impl std::error::Error for Error {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         None
     }
 }
 
-impl<'i> Error<'i> {
+impl Error {
     pub fn with_path(mut self, path: impl Into<PathBuf>) -> Self {
         self.path = Some(path.into());
         self
