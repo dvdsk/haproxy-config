@@ -22,10 +22,10 @@ use super::sections::*;
 /// // Build a config from the sections
 /// let config = Config::try_from(sections.as_slice()).unwrap();
 /// ```
-pub fn parse_sections(input: &str) -> Result<Vec<Section>, Error<'_>> {
+pub fn parse_sections(input: &str) -> Result<Vec<Section>, Error> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
-        source: input,
+        source: input.to_string(),
         path: None,
     })
 }
@@ -133,7 +133,7 @@ peg::parser! {
 
         pub(super) rule group_line() -> Line<'input>
             = _ "group" _ name:group_name() _ users:users()? comment:comment_text()? line_break() eof()? {
-                Line::Group { name, users: users.unwrap_or_else(Vec::new), comment }
+                Line::Group { name, users: users.unwrap_or_default(), comment }
             }
 
         rule password_type() -> bool
