@@ -7,13 +7,14 @@ use ariadne::{Label, Report, ReportKind, Source};
 use peg::error::ParseError;
 use peg::str::LineCol;
 
+#[derive(Debug)]
 pub struct Error<'input> {
     pub inner: ParseError<LineCol>,
     pub source: &'input str,
     pub path: Option<PathBuf>,
 }
 
-impl std::fmt::Debug for Error<'_> {
+impl std::fmt::Display for Error<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut bytes = Vec::new();
         {
@@ -26,6 +27,12 @@ impl std::fmt::Debug for Error<'_> {
 
         let string = String::from_utf8(bytes).expect("source is utf8 thus report is utf8");
         f.write_str(&string)
+    }
+}
+
+impl std::error::Error for Error<'_> {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        None
     }
 }
 
