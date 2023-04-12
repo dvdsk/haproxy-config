@@ -1,7 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use super::{Acl, Error, Name, Server};
-use crate::sections::{Line, Section};
+use super::Address;
+use super::{Acl, error::Error, Name, Server};
+use crate::sections::{lines::borrowed::Line, borrowed::Section};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Backend {
@@ -14,7 +15,7 @@ pub struct Backend {
 
 type Pair = (Name, Backend);
 impl<'a> TryFrom<&'a Section<'a>> for Pair {
-    type Error = Error<'a>;
+    type Error = Error;
 
     fn try_from(entry: &'a Section<'a>) -> Result<(Name, Backend), Self::Error> {
         let Section::Backend{ proxy, lines,  ..} = entry else {
@@ -49,14 +50,14 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
                 Line::Acl { name, rule, .. } => {
                     acls.insert(Acl {
                         name: name.to_string(),
-                        rule: rule.ok_or(Error::AclWithoutRule(name))?.to_string(),
+                        rule: rule.ok_or(Error::acl_without_rule(name))?.to_string(),
                     });
                 }
                 Line::Server {
                     name, addr, option, ..
                 } => servers.push(Server {
                     name: name.to_string(),
-                    addr: addr.into(),
+                    addr: Address::from(addr),
                     option: option.map(ToOwned::to_owned),
                 }),
                 _other => other.push(_other),
@@ -64,7 +65,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
         }
 
         if !other.is_empty() {
-            return Err(Error::WrongBackendLines(other));
+            return Err(Error::wrong_backend_lines(other));
         }
 
         Ok((
@@ -81,7 +82,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
 }
 
 impl<'a> Backend {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Backend { .. }))

@@ -3,6 +3,8 @@ use std::net::Ipv4Addr;
 mod error;
 pub use error::Error;
 use super::sections::*;
+use crate::sections::borrowed::Section;
+use crate::sections::lines::borrowed::Line;
 
 /// Parse a string representing a haproxy config to list of [sections](Section).
 /// Preservers comments and the order of the sections and their options.
@@ -22,7 +24,7 @@ use super::sections::*;
 /// // Build a config from the sections
 /// let config = Config::try_from(sections.as_slice()).unwrap();
 /// ```
-pub fn parse_sections(input: &str) -> Result<Vec<Section>, Error> {
+pub fn parse_sections<'a>(input: &'a str) -> Result<Vec<Section<'a>>, Error> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
         source: input.to_string(),
@@ -270,7 +272,8 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
-    use crate::sections::{AddressRef, Line, PasswordRef};
+    use crate::sections::lines::borrowed::Line;
+    use crate::sections::{AddressRef, PasswordRef};
 
     #[test]
     fn global() {

@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::sections::{Line, Section};
+use crate::sections::{lines::borrowed::Line, borrowed::Section};
 
-use super::{Acl, Bind, Error, Name, Server, Address};
+use super::{Acl, Bind, error::Error, Name, Server, Address};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Listen {
@@ -16,7 +16,7 @@ pub struct Listen {
 
 type Pair = (Name, Listen);
 impl<'a> TryFrom<&'a Section<'a>> for Pair {
-    type Error = Error<'a>;
+    type Error = Error;
 
     fn try_from(entry: &'a Section<'a>) -> Result<Self, Self::Error> {
         let Section::Listen{ proxy, lines, header_addr, ..} = entry else {
@@ -39,7 +39,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
                     name, addr, option, ..
                 } => servers.push(Server {
                     name: name.to_string(),
-                    addr: addr.into(),
+                    addr: Address::from(addr),
                     option: option.map(ToOwned::to_owned),
                 }),
                 Line::Config { key, value, .. } => {
@@ -57,7 +57,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
                 Line::Acl { name, rule, .. } => {
                     acls.insert(Acl {
                         name: name.to_string(),
-                        rule: rule.ok_or(Error::AclWithoutRule(name))?.to_string(),
+                        rule: rule.ok_or(Error::acl_without_rule(name))?.to_string(),
                     });
                 }
                 Line::Bind { .. } => binds.push(line),
@@ -66,11 +66,11 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
         }
 
         if !other.is_empty() {
-            return Err(Error::WrongListenLines(other));
+            return Err(Error::wrong_listen_lines(other));
         }
 
         if binds.len() > 1 {
-            return Err(Error::MoreThenOneBind(binds));
+            return Err(Error::more_then_one_bind(binds));
         }
 
         let (addr, bind_config) = match (binds.first(), header_addr) {
@@ -99,7 +99,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
 }
 
 impl<'a> Listen {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error<'a>> {
+    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Listen { .. }))

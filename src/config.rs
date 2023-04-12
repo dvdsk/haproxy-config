@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 use std::net::Ipv4Addr;
 
-use super::sections::Section;
-use crate::sections::{Line, AddressRef, HostRef};
+use super::sections::borrowed::Section;
+use crate::sections::{lines::borrowed::Line, AddressRef, HostRef};
 
 mod global;
 pub use global::Global;
@@ -16,6 +16,7 @@ mod listen;
 pub use listen::Listen;
 mod userlist;
 pub use userlist::{Userlist, User, Group, Password};
+mod error;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Acl {
@@ -96,7 +97,7 @@ pub type Name = String;
 /// is parsed as a config option.
 /// ```
 /// use haproxy_config::parse_sections;
-/// use haproxy_config::{Config, Section};
+/// use haproxy_config::{Config, sections::borrowed::Section};
 ///
 /// let file = include_str!("../tests/unsupported/nonesens.cfg");
 /// let sections = dbg!(parse_sections(file).unwrap());
@@ -126,7 +127,7 @@ pub struct Config {
 }
 
 impl<'a> TryFrom<&'a Vec<Section<'a>>> for Config {
-    type Error = Error<'a>;
+    type Error = error::Error;
 
     fn try_from(vec: &'a Vec<Section<'a>>) -> Result<Self, Self::Error> {
         Config::try_from(vec.as_slice())
@@ -134,7 +135,7 @@ impl<'a> TryFrom<&'a Vec<Section<'a>>> for Config {
 }
 
 impl<'a> TryFrom<&'a [Section<'a>]> for Config {
-    type Error = Error<'a>;
+    type Error = error::Error;
 
     fn try_from(entries: &'a [Section<'a>]) -> Result<Self, Self::Error> {
         let unknown_lines: Vec<_> = entries
@@ -146,7 +147,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Config {
             .collect();
 
         if !unknown_lines.is_empty() {
-            return Err(Error::UnknownLines(unknown_lines));
+            return Err(error::Error::unknown_lines(unknown_lines));
         }
 
         Ok(Config {
@@ -160,53 +161,6 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Config {
     }
 }
 
-/// Errors that can occure when transforming a list of [sections](Section) to a [Config]
-#[derive(Debug, thiserror::Error)]
-#[non_exhaustive]
-pub enum Error<'a> {
-    #[error("Unknown lines in the input, you should filter these out if you want to ignore them")]
-    UnknownLines(Vec<&'a str>),
-
-    #[error("Each config must have a global section")]
-    MissingGlobal,
-
-    #[error("The following lines are not allowed in a global section: {0:#?}")]
-    WrongGlobalLines(Vec<&'a Line<'a>>),
-    #[error("The following lines are not allowed in a listen section: {0:#?}")]
-    WrongListenLines(Vec<&'a Line<'a>>),
-    #[error("The following lines are not allowed in a backend section: {0:#?}")]
-    WrongBackendLines(Vec<&'a Line<'a>>),
-    #[error("The following lines are not allowed in a userlist section: {0:#?}")]
-    WrongUserlistLines(Vec<&'a Line<'a>>),
-    #[error("The following lines are not allowed in a default section: {0:#?}")]
-    WrongDefaultLines(Vec<&'a Line<'a>>),
-    #[error("The following lines are not allowed in a frontend section: {0:#?}")]
-    WrongFrontendLines(Vec<&'a Line<'a>>),
-
-    #[error("There can only be a single global section")]
-    MultipleGlobalEntries(Vec<&'a Section<'a>>),
-    #[error("There can only be a single default section")]
-    MultipleDefaultEntries(Vec<&'a Section<'a>>),
-
-    #[error("Every ACL should have a rule, this one had none: {0}")]
-    AclWithoutRule(&'a str),
-
-    #[error("Every frontend or listen section must bind to as address")]
-    NoBind,
-    #[error("A frontend or listen section may only bind a single address this section has multiple lines binding to an adress: {0:#?}")]
-    MoreThenOneBind(Vec<&'a Line<'a>>),
-    #[error("A frontend or listen section may only bind a single address however both the header and a bind line further downwere found")]
-    HeaderAndBindLine,
-
-    #[error("Processes can only run as single user however multiple where specified: {0:#?}")]
-    MultipleSysUsers(Vec<&'a Line<'a>>),
-    #[error("Processes can only run as single group however multiple where specified: {0:#?}")]
-    MultipleSysGroups(Vec<&'a Line<'a>>),
-    #[error("The user line in a global section refers to the user haproxy runs as. It is not the same as an hapoxy user and has no group argument. Add a line \"group <some_unix_group>\" if you want to specify the unix group haproxy should run as.")]
-    SysUserHasGroups(&'a Line<'a>),
-    #[error("The group line in a global section refers to the user haproxy runs as. It is not the same as an hapoxy user and has no group argument. Add a line \"user <some_unix_user>\" if you want to specify the unix user haproxy should run as.")]
-    SysGroupHasUsers(&'a Line<'a>),
-}
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Default {
@@ -216,7 +170,7 @@ pub struct Default {
 }
 
 impl<'a> TryFrom<&'a [Section<'a>]> for Default {
-    type Error = Error<'a>;
+    type Error = error::Error;
 
     fn try_from(entries: &'a [Section<'_>]) -> Result<Self, Self::Error> {
         let default_entries: Vec<_> = entries
@@ -225,7 +179,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Default {
             .collect();
 
         if default_entries.len() > 1 {
-            return Err(Error::MultipleDefaultEntries(default_entries));
+            return Err(error::Error::multiple_default_entries(default_entries));
         }
 
         let Some(Section::Default{ proxy, lines, ..}) = default_entries.first() else {
@@ -259,7 +213,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Default {
         }
 
         if !other.is_empty() {
-            return Err(Error::WrongDefaultLines(other));
+            return Err(error::Error::wrong_default_lines(other));
         }
 
         Ok(Default {
