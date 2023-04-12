@@ -303,7 +303,7 @@ mod tests {
         let line = parser::user_line(include_str!("user_with_group.txt")).unwrap();
         match line {
             Line::User { groups, .. } if groups == vec!["G1"] => (),
-            _ => panic!("groups not correct, line: {:?}", line),
+            _ => panic!("groups not correct, line: {line:?}"),
         }
     }
 
@@ -319,7 +319,7 @@ mod tests {
                 assert_eq!(groups, Vec::<&str>::new());
                 assert_eq!(pass, "test");
             }
-            _ => panic!("user not correct, line: {:?}", line),
+            _ => panic!("user not correct, line: {line:?}"),
         }
     }
 
@@ -328,7 +328,7 @@ mod tests {
         let line = parser::group_line(include_str!("group_with_users.txt")).unwrap();
         match line {
             Line::Group { users, .. } if users == vec!["haproxy"] => (),
-            _ => panic!("group not correct, line: {:?}", line),
+            _ => panic!("group not correct, line: {line:?}"),
         }
     }
 
@@ -340,7 +340,7 @@ mod tests {
                 assert!(users.is_empty());
                 assert_eq!(name, "G1");
             }
-            _ => panic!("group not correct, line: {:?}", line),
+            _ => panic!("group not correct, line: {line:?}"),
         }
     }
 
@@ -358,7 +358,7 @@ mod tests {
                     }
                 );
             }
-            _ => panic!("group not correct, line: {:?}", line),
+            _ => panic!("group not correct, line: {line:?}"),
         }
     }
 }

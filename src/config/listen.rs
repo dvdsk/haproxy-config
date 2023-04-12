@@ -39,25 +39,25 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
                 Line::Server {
                     name, addr, option, ..
                 } => servers.push(Server {
-                    name: name.to_string(),
+                    name: (*name).to_string(),
                     addr: Address::from(addr),
                     option: option.map(ToOwned::to_owned),
                 }),
                 Line::Config { key, value, .. } => {
-                    config.insert(key.to_string(), value.map(ToOwned::to_owned));
+                    config.insert((*key).to_string(), value.map(ToOwned::to_owned));
                 }
                 Line::Option {
                     keyword: key,
                     value,
                     ..
                 } => {
-                    let key = key.to_string();
+                    let key = (*key).to_string();
                     let value = value.map(ToOwned::to_owned);
                     options.insert(key, value);
                 }
                 Line::Acl { name, rule, .. } => {
                     acls.insert(Acl {
-                        name: name.to_string(),
+                        name: (*name).to_string(),
                         rule: rule.ok_or(Error::acl_without_rule(name))?.to_string(),
                     });
                 }
@@ -83,9 +83,9 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
         };
 
         Ok((
-            proxy.to_string(),
+            (*proxy).to_string(),
             Listen {
-                name: proxy.to_string(),
+                name: (*proxy).to_string(),
                 bind: Bind {
                     addr: Address::from(addr),
                     config: bind_config.map(ToOwned::to_owned),
