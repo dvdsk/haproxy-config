@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::sections::{lines::borrowed::Line, borrowed::Section};
+use crate::sections::{line::borrowed::Line, borrowed::Section};
 
 use super::{Acl, Bind, error::Error, Name, Server, Address};
 

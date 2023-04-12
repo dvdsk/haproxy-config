@@ -1,11 +1,11 @@
 use super::AddressRef;
 
-use super::lines::borrowed;
+use super::line::borrowed;
 
 /// Parsed haproxy config preserving the order and comments.
 /// Does not support conditional blocks,
 /// these and other unsupported lines will be stored in the [UnknownLine](Section::UnknownLine) variant.
-/// Information outside the header is containd in the correct order in the lines member. See the [Line] documentation.
+/// Information outside the header is containd in the correct order in the lines member. See the [Line](borrowed::Line) documentation.
 #[derive(Debug)]
 pub enum Section<'input> {
     BlankLine,
@@ -15,7 +15,7 @@ pub enum Section<'input> {
     Global {
         /// Comment on the same line as the section header
         comment: Option<&'input str>,
-        /// [Lines](Line) in this section.
+        /// [Lines](borrowed::Line) in this section.
         lines: Vec<borrowed::Line<'input>>,
     },
     /// The lines in the default section of a config.
@@ -24,7 +24,7 @@ pub enum Section<'input> {
         comment: Option<&'input str>,
         /// The default proxy stated after the section header
         proxy: Option<&'input str>,
-        /// [Lines](Line) in this section.
+        /// [Lines](borrowed::Line) in this section.
         lines: Vec<borrowed::Line<'input>>,
     },
     Frontend {
@@ -32,7 +32,7 @@ pub enum Section<'input> {
         comment: Option<&'input str>,
         /// The proxy stated after the section header
         proxy: &'input str,
-        /// [Lines](Line) in this section.
+        /// [Lines](borrowed::Line) in this section.
         lines: Vec<borrowed::Line<'input>>,
         /// Optional address to which the frontend binds can be stated
         /// in the header, for example `frontend webserver *:80` instead
@@ -44,7 +44,7 @@ pub enum Section<'input> {
         comment: Option<&'input str>,
         /// The proxy stated after the section header
         proxy: &'input str,
-        /// [Lines](Line) in this section.
+        /// [Lines](borrowed::Line) in this section.
         lines: Vec<borrowed::Line<'input>>,
         /// Optional address to which the listen binds can be stated
         /// in the header, for example `frontend webserver *:80` instead
@@ -56,7 +56,7 @@ pub enum Section<'input> {
         comment: Option<&'input str>,
         /// The proxy stated after the section header
         proxy: &'input str,
-        /// [Lines](Line) in this section.
+        /// [Lines](borrowed::Line) in this section.
         lines: Vec<borrowed::Line<'input>>,
     },
     Userlist {
@@ -64,7 +64,7 @@ pub enum Section<'input> {
         comment: Option<&'input str>,
         /// Name of this userlist
         name: &'input str,
-        /// [Lines](Line) in this section.
+        /// [Lines](borrowed::Line) in this section.
         lines: Vec<borrowed::Line<'input>>,
     },
     UnknownLine {

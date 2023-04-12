@@ -3,8 +3,8 @@ use std::net::Ipv4Addr;
 pub mod borrowed;
 pub mod owned;
 
-pub mod lines;
-use lines::owned::Line;
+pub mod line;
+use line::owned::Line;
 
 use crate::config::Address;
 

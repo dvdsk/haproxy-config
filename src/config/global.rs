@@ -1,5 +1,5 @@
 use crate::config::error::Error;
-use crate::sections::lines::borrowed::Line;
+use crate::sections::line::borrowed::Line;
 
 use super::super::sections::borrowed::Section;
 

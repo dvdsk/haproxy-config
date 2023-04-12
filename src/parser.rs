@@ -4,7 +4,7 @@ mod error;
 pub use error::Error;
 use super::sections::*;
 use crate::sections::borrowed::Section;
-use crate::sections::lines::borrowed::Line;
+use crate::sections::line::borrowed::Line;
 
 /// Parse a string representing a haproxy config to list of [sections](Section).
 /// Preservers comments and the order of the sections and their options.
@@ -272,7 +272,7 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
-    use crate::sections::lines::borrowed::Line;
+    use crate::sections::line::borrowed::Line;
     use crate::sections::{AddressRef, PasswordRef};
 
     #[test]

@@ -1,6 +1,6 @@
 use super::super::sections::owned::Section;
 
-use crate::sections::lines::{borrowed, owned::Line};
+use crate::sections::line::{borrowed, owned::Line};
 
 /// Errors that can occure when transforming a list of [sections](Section) to a [Config]
 #[derive(Debug, thiserror::Error)]

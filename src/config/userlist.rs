@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::{error::Error, Name};
-use crate::sections::{lines::borrowed::Line, PasswordRef, borrowed::Section};
+use crate::sections::{line::borrowed::Line, PasswordRef, borrowed::Section};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Group {

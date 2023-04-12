@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::{Acl, error::Error, Name, Bind, Address};
 use crate::sections;
-use crate::sections::{BackendModifier, lines::borrowed::Line, borrowed::Section};
+use crate::sections::{BackendModifier, line::borrowed::Line, borrowed::Section};
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Backend {

@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::net::Ipv4Addr;
 
 use super::sections::borrowed::Section;
-use crate::sections::{lines::borrowed::Line, AddressRef, HostRef};
+use crate::sections::{line::borrowed::Line, AddressRef, HostRef};
 
 mod global;
 pub use global::Global;
