@@ -6,7 +6,7 @@ fn run_test(file: &str, path: &str) {
 
     assert!(sections
         .iter()
-        .any(|s| matches!(s, Section::UnknownLine { .. })))
+        .any(|s| matches!(s, Section::UnknownLine { .. })));
 }
 
 macro_rules! test_file {
