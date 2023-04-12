@@ -12,19 +12,19 @@ impl<'a> From<&'a borrowed::Line<'a>> for owned::Line {
                 option,
                 comment,
             } => owned::Line::Server {
-                name: name.to_string(),
+                name: (*name).to_string(),
                 addr: Address::from(addr),
-                option: option.map(|s| s.to_owned()),
-                comment: comment.map(|s| s.to_owned()),
+                option: option.map(ToOwned::to_owned),
+                comment: comment.map(ToOwned::to_owned),
             },
             borrowed::Line::Option {
                 keyword,
                 value,
                 comment,
             } => owned::Line::Option {
-                keyword: keyword.to_string(),
-                value: value.map(|s| s.to_owned()),
-                comment: comment.map(|s| s.to_owned()),
+                keyword: (*keyword).to_string(),
+                value: value.map(ToOwned::to_owned),
+                comment: comment.map(ToOwned::to_owned),
             },
             borrowed::Line::Bind {
                 addr,
@@ -32,17 +32,17 @@ impl<'a> From<&'a borrowed::Line<'a>> for owned::Line {
                 comment,
             } => owned::Line::Bind {
                 addr: Address::from(addr),
-                value: value.map(|s| s.to_owned()),
-                comment: comment.map(|s| s.to_owned()),
+                value: value.map(ToOwned::to_owned),
+                comment: comment.map(ToOwned::to_owned),
             },
             borrowed::Line::Acl {
                 name,
                 rule,
                 comment,
             } => owned::Line::Acl {
-                name: name.to_string(),
-                rule: rule.map(|s| s.to_owned()),
-                comment: comment.map(|s| s.to_owned()),
+                name: (*name).to_string(),
+                rule: rule.map(ToOwned::to_owned),
+                comment: comment.map(ToOwned::to_owned),
             },
             borrowed::Line::Backend {
                 name,
@@ -50,19 +50,19 @@ impl<'a> From<&'a borrowed::Line<'a>> for owned::Line {
                 condition,
                 comment,
             } => owned::Line::Backend {
-                name: name.to_string(),
-                modifier: modifier.to_owned(),
-                condition: condition.map(|s| s.to_owned()),
-                comment: comment.map(|s| s.to_owned()),
+                name: (*name).to_string(),
+                modifier: modifier.clone(),
+                condition: condition.map(ToOwned::to_owned),
+                comment: comment.map(ToOwned::to_owned),
             },
             borrowed::Line::Group {
                 name,
                 users,
                 comment,
             } => owned::Line::Group {
-                name: name.to_string(),
-                users: users.iter().map(|s| s.to_string()).collect(),
-                comment: comment.map(|s| s.to_owned()),
+                name: (*name).to_string(),
+                users: users.iter().map(|s| (*s).to_string()).collect(),
+                comment: comment.map(ToOwned::to_owned),
             },
             borrowed::Line::User {
                 name,
@@ -70,24 +70,24 @@ impl<'a> From<&'a borrowed::Line<'a>> for owned::Line {
                 groups,
                 comment,
             } => owned::Line::User {
-                name: name.to_string(),
+                name: (*name).to_string(),
                 password: Password::from(password),
-                groups: groups.iter().map(|s| s.to_string()).collect(),
-                comment: comment.map(|s| s.to_owned()),
+                groups: groups.iter().map(|s| (*s).to_string()).collect(),
+                comment: comment.map(ToOwned::to_owned),
             },
             borrowed::Line::SysUser { name } => owned::Line::SysUser {
-                name: name.to_string(),
+                name: (*name).to_string(),
             },
             borrowed::Line::Config {
                 key,
                 value,
                 comment,
             } => owned::Line::Config {
-                key: key.to_string(),
-                value: value.map(|s| s.to_owned()),
-                comment: comment.map(|s| s.to_owned()),
+                key: (*key).to_string(),
+                value: value.map(ToOwned::to_owned),
+                comment: comment.map(ToOwned::to_owned),
             },
-            borrowed::Line::Comment(s) => owned::Line::Comment(s.to_string()),
+            borrowed::Line::Comment(s) => owned::Line::Comment((*s).to_string()),
             borrowed::Line::Blank => owned::Line::Blank,
         }
     }

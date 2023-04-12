@@ -2,7 +2,8 @@ use std::collections::{HashMap, HashSet};
 
 use super::Address;
 use super::{Acl, error::Error, Name, Server};
-use crate::sections::{line::borrowed::Line, borrowed::Section};
+use crate::sections::{borrowed::Section};
+use crate::line::borrowed::Line; 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Backend {
@@ -60,7 +61,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
                     addr: Address::from(addr),
                     option: option.map(ToOwned::to_owned),
                 }),
-                _other => other.push(_other),
+                wrong => other.push(wrong),
             }
         }
 
@@ -82,7 +83,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
 }
 
 impl<'a> Backend {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
+    pub(crate) fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Backend { .. }))

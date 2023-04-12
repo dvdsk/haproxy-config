@@ -1,5 +1,5 @@
 use crate::config::Address;
-use super::line::owned;
+use crate::line::owned;
 
 /// Represents a section in a config file.
 #[derive(Debug)]
@@ -11,7 +11,7 @@ pub enum Section {
     Global {
         /// Comment on the same line as the section header
         comment: Option<String>,
-        /// [Lines](owned::Line) in this section.
+        /// [`Lines`](owned::Line) in this section.
         lines: Vec<owned::Line>,
     },
     /// The lines in the default section of a config.
@@ -20,7 +20,7 @@ pub enum Section {
         comment: Option<String>,
         /// The default proxy stated after the section header
         proxy: Option<String>,
-        /// [Lines](owned::Line) in this section.
+        /// [`Lines`](owned::Line) in this section.
         lines: Vec<owned::Line>,
     },
     Frontend {
@@ -28,7 +28,7 @@ pub enum Section {
         comment: Option<String>,
         /// The proxy stated after the section header
         proxy: String,
-        /// [Lines](owned::Line) in this section.
+        /// [`Lines`](owned::Line) in this section.
         lines: Vec<owned::Line>,
         /// Optional address to which the frontend binds can be stated
         /// in the header, for example `frontend webserver *:80` instead
@@ -40,7 +40,7 @@ pub enum Section {
         comment: Option<String>,
         /// The proxy stated after the section header
         proxy: String,
-        /// [Lines](owned::Line) in this section.
+        /// [`Lines`](owned::Line) in this section.
         lines: Vec<owned::Line>,
         /// Optional address to which the listen binds can be stated
         /// in the header, for example `frontend webserver *:80` instead
@@ -52,7 +52,7 @@ pub enum Section {
         comment: Option<String>,
         /// The proxy stated after the section header
         proxy: String,
-        /// [Lines](owned::Line) in this section.
+        /// [`Lines`](owned::Line) in this section.
         lines: Vec<owned::Line>,
     },
     Userlist {
@@ -60,7 +60,7 @@ pub enum Section {
         comment: Option<String>,
         /// Name of this userlist
         name: String,
-        /// [Lines](owned::Line) in this section.
+        /// [`Lines`](owned::Line) in this section.
         lines: Vec<owned::Line>,
     },
     UnknownLine {

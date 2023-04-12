@@ -1,5 +1,5 @@
 use crate::config::error::Error;
-use crate::sections::line::borrowed::Line;
+use crate::line::borrowed::Line;
 
 use super::super::sections::borrowed::Section;
 
@@ -42,7 +42,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
         {
             match line {
                 Line::Config { key, value, .. } => {
-                    let key = key.to_string();
+                    let key = (*key).to_string();
                     let value = value.map(ToOwned::to_owned);
                     config.insert(key, value);
                 }
@@ -52,7 +52,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
                 Line::Group { .. } => {
                     group_lines.push(line);
                 }
-                _other => other.push(_other),
+                wrong => other.push(wrong),
             }
         }
 
@@ -83,8 +83,8 @@ fn extract_sys_user_group<'a>(
 
     let user = match user_lines.pop() {
         None => None,
-        Some(Line::SysUser { name, .. }) => Some(name.to_string()),
-        _other => unreachable!(),
+        Some(Line::SysUser { name, .. }) => Some((*name).to_string()),
+        _wrong => unreachable!(),
     };
 
     let group = match group_lines.pop() {
@@ -93,9 +93,9 @@ fn extract_sys_user_group<'a>(
             if !users.is_empty() {
                 return Err(Error::sys_group_has_users(line));
             }
-            Some(name.to_string())
+            Some((*name).to_string())
         }
-        _other => unreachable!(),
+        _wrong => unreachable!(),
     };
 
     Ok((user, group))

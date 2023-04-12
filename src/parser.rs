@@ -2,16 +2,19 @@ use std::net::Ipv4Addr;
 
 mod error;
 pub use error::Error;
-use super::sections::*;
+use super::sections::{AddressRef, BackendModifier, HostRef, PasswordRef};
 use crate::sections::borrowed::Section;
-use crate::sections::line::borrowed::Line;
+use crate::line::borrowed::Line;
 
-/// Parse a string representing a haproxy config to list of [sections](Section).
+/// Parse a string representing a haproxy config to list of [`sections`](Section).
 /// Preservers comments and the order of the sections and their options.
-/// Unknown sections will result in multiple [UnknownLine][Section::UnknownLine] entries.
+/// Unknown sections will result in multiple [`UnknownLine`][Section::UnknownLine] entries.
 ///
-/// You can build a more strongly typed [Config](super::Config) struct from the output, see example
+/// You can build a more strongly typed [`Config`](super::Config) struct from the output, see example
 /// below.
+///
+/// # Errors
+/// Returns an error on unsupported or wrong haproxy config.
 ///
 /// # Examples
 /// ```
@@ -24,10 +27,10 @@ use crate::sections::line::borrowed::Line;
 /// // Build a config from the sections
 /// let config = Config::try_from(sections.as_slice()).unwrap();
 /// ```
-pub fn parse_sections<'a>(input: &'a str) -> Result<Vec<Section<'a>>, Error> {
+pub fn parse_sections(input: &str) -> Result<Vec<Section<'_>>, Error> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
-        source: input.to_string(),
+        source: (*input).to_string(),
         path: None,
     })
 }
@@ -272,7 +275,7 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
-    use crate::sections::line::borrowed::Line;
+    use crate::line::borrowed::Line;
     use crate::sections::{AddressRef, PasswordRef};
 
     #[test]

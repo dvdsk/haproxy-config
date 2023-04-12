@@ -1,8 +1,12 @@
 #![doc= include_str!("../Readme.md")]
 
 mod parser;
-/// Zero copy representation of config sections.
+/// Zero copy and Owned representations of config sections.
 pub mod sections;
+
+/// Zero copy and Owned representations of the lines in a config section.
+pub mod line;
+
 /// Stricter owned representation of an entire config that is easy to query.
 pub mod config;
 

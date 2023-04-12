@@ -1,8 +1,8 @@
 use super::super::sections::owned::Section;
 
-use crate::sections::line::{borrowed, owned::Line};
+use crate::line::{borrowed, owned::Line};
 
-/// Errors that can occure when transforming a list of [sections](Section) to a [Config]
+/// Errors that can occure when transforming a list of [`sections`](Section) to a [Config]
 #[derive(Debug, thiserror::Error)]
 #[non_exhaustive]
 pub enum Error {
@@ -58,7 +58,7 @@ impl Error {
 
 impl Error {
     pub fn acl_without_rule(s: &str) -> Error {
-        Error::AclWithoutRule(s.to_string())
+        Error::AclWithoutRule((*s).to_string())
     }
 }
 

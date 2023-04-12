@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::sections::{line::borrowed::Line, borrowed::Section};
+use crate::sections::borrowed::Section;
+use crate::line::borrowed::Line; 
 
 use super::{Acl, Bind, error::Error, Name, Server, Address};
 
@@ -61,7 +62,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
                     });
                 }
                 Line::Bind { .. } => binds.push(line),
-                _other => other.push(_other),
+                wrong => other.push(wrong),
             }
         }
 
@@ -99,7 +100,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
 }
 
 impl<'a> Listen {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
+    pub(crate) fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Listen { .. }))

@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use super::{error::Error, Name};
-use crate::sections::{line::borrowed::Line, PasswordRef, borrowed::Section};
+use crate::sections::{PasswordRef, borrowed::Section};
+use crate::line::borrowed::Line;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Group {
@@ -9,7 +10,7 @@ pub struct Group {
     pub users: Vec<String>,
 }
 
-/// Owned variant of [PasswordRef]
+/// Owned variant of [`PasswordRef`]
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Password {
     Secure(String),
@@ -19,8 +20,8 @@ pub enum Password {
 impl From<&PasswordRef<'_>> for Password {
     fn from(value: &PasswordRef) -> Self {
         match value {
-            PasswordRef::Secure(p) => Self::Secure(p.to_string()),
-            PasswordRef::Insecure(p) => Self::Insecure(p.to_string()),
+            PasswordRef::Secure(p) => Self::Secure((*p).to_string()),
+            PasswordRef::Insecure(p) => Self::Insecure((*p).to_string()),
         }
     }
 }
@@ -57,14 +58,14 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
         {
             match line {
                 Line::User { name, password, .. } => users.push(User {
-                    name: name.to_string(),
+                    name: (*name).to_string(),
                     password: Password::from(password),
                 }),
                 Line::Group { name, users, .. } => groups.push(Group {
-                    name: name.to_string(),
+                    name: (*name).to_string(),
                     users: users.iter().map(ToString::to_string).collect(),
                 }),
-                _other => other.push(_other),
+                wrong => other.push(wrong),
             }
         }
 
@@ -73,9 +74,9 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
         }
 
         Ok((
-            name.to_string(),
+            (*name).to_string(),
             Userlist {
-                name: name.to_string(),
+                name: (*name).to_string(),
                 users,
                 groups,
             },
@@ -84,7 +85,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
 }
 
 impl<'a> Userlist {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
+    pub(crate) fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Userlist { .. }))

@@ -4,7 +4,8 @@ use std::collections::HashMap;
 use std::net::Ipv4Addr;
 
 use super::sections::borrowed::Section;
-use crate::sections::{line::borrowed::Line, AddressRef, HostRef};
+use crate::sections::{AddressRef, HostRef};
+use crate::line::borrowed::Line; 
 
 mod global;
 pub use global::Global;
@@ -37,7 +38,7 @@ pub struct Server {
     pub option: Option<String>,
 }
 
-/// Owned variant of [AddressRef]
+/// Owned variant of [`AddressRef`]
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Address {
     pub host: Host,
@@ -53,7 +54,7 @@ impl From<&AddressRef<'_>> for Address {
     }
 }
 
-/// Owned variant of [HostRef]
+/// Owned variant of [`HostRef`]
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum Host {
     Ipv4(Ipv4Addr),
@@ -65,7 +66,7 @@ impl From<&HostRef<'_>> for Host {
     fn from(h: &HostRef<'_>) -> Self {
         match h {
             HostRef::Ipv4(a) => Host::Ipv4(*a),
-            HostRef::Dns(s) => Host::Dns(s.to_string()),
+            HostRef::Dns(s) => Host::Dns((*s).to_string()),
             HostRef::Wildcard => Host::Wildcard,
         }
     }
@@ -74,7 +75,7 @@ impl From<&HostRef<'_>> for Host {
 pub type Name = String;
 
 /// A haproxy config where everything except config and options are fully typed. Can be created
-/// from a list of [Sections](Section) using [TryFrom]. This type does not borrow its input.
+/// from a list of [`Sections`](Section) using [`TryFrom`]. This type does not borrow its input.
 ///
 /// Returns Err if the config contains errors or sections or grammar we don not supported. For
 /// example conditional blocks.
@@ -195,7 +196,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Default {
         {
             match line {
                 Line::Config { key, value, .. } => {
-                    let key = key.to_string();
+                    let key = (*key).to_string();
                     let value = value.map(ToOwned::to_owned);
                     config.insert(key, value);
                 }
@@ -204,11 +205,11 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Default {
                     value,
                     ..
                 } => {
-                    let key = key.to_string();
+                    let key = (*key).to_string();
                     let value = value.map(ToOwned::to_owned);
                     options.insert(key, value);
                 }
-                _other => other.push(_other),
+                o => other.push(o),
             }
         }
 
