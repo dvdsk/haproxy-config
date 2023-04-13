@@ -1,11 +1,11 @@
 [package]
 name = "haproxy-config"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 rust-version = "1.65" # let-else
 authors = ["David Kleingeld"]
-readme = "Readme.md"
+readme = "README.md"
 description = "Parse HAProxy configs and easily query it"
 repository = "https://github.com/dvdsk/haproxy-config"
 license = "MIT"
@@ -23,3 +23,6 @@ ariadne = "0.2.0"
 itertools = "0.10.5"
 peg = "0.8.1"
 thiserror = "1.0.40"
+
+[dev-dependencies]
+color-eyre = "0.5"

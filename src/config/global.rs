@@ -1,7 +1,7 @@
-use crate::config::Error;
-use crate::sections::Line;
+use crate::config::error::Error;
+use crate::line::borrowed::Line;
 
-use super::super::sections::Section;
+use super::super::section::borrowed::Section;
 
 use std::collections::HashMap;
 
@@ -15,7 +15,7 @@ pub struct Global {
 }
 
 impl<'a> TryFrom<&'a [Section<'a>]> for Global {
-    type Error = Error<'a>;
+    type Error = Error;
 
     fn try_from(entries: &'a [Section<'_>]) -> Result<Self, Self::Error> {
         let global_entries: Vec<_> = entries
@@ -24,7 +24,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
             .collect();
 
         if global_entries.len() > 1 {
-            return Err(Error::MultipleGlobalEntries(global_entries));
+            return Err(Error::multiple_global_entries(global_entries));
         }
 
         let Some(Section::Global{ lines, .. }) = global_entries.first() else {
@@ -42,7 +42,7 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
         {
             match line {
                 Line::Config { key, value, .. } => {
-                    let key = key.to_string();
+                    let key = (*key).to_string();
                     let value = value.map(ToOwned::to_owned);
                     config.insert(key, value);
                 }
@@ -52,12 +52,12 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
                 Line::Group { .. } => {
                     group_lines.push(line);
                 }
-                _other => other.push(_other),
+                wrong => other.push(wrong),
             }
         }
 
         if !other.is_empty() {
-            return Err(Error::WrongGlobalLines(other));
+            return Err(Error::wrong_global_lines(other));
         }
 
         let (user, group) = extract_sys_user_group(user_lines, group_lines)?;
@@ -73,29 +73,29 @@ impl<'a> TryFrom<&'a [Section<'a>]> for Global {
 fn extract_sys_user_group<'a>(
     mut user_lines: Vec<&'a Line>,
     mut group_lines: Vec<&'a Line>,
-) -> Result<(Option<String>, Option<String>), Error<'a>> {
+) -> Result<(Option<String>, Option<String>), Error> {
     if user_lines.len() > 1 {
-        return Err(Error::MultipleSysUsers(user_lines));
+        return Err(Error::multiple_sys_users(user_lines));
     }
     if group_lines.len() > 1 {
-        return Err(Error::MultipleSysGroups(group_lines));
+        return Err(Error::multiple_sys_groups(group_lines));
     }
 
     let user = match user_lines.pop() {
         None => None,
-        Some(Line::SysUser { name, .. }) => Some(name.to_string()),
-        _other => unreachable!(),
+        Some(Line::SysUser { name, .. }) => Some((*name).to_string()),
+        _wrong => unreachable!(),
     };
 
     let group = match group_lines.pop() {
         None => None,
         Some(line @ Line::Group { name, users, .. }) => {
             if !users.is_empty() {
-                return Err(Error::SysGroupHasUsers(line));
+                return Err(Error::sys_group_has_users(line));
             }
-            Some(name.to_string())
+            Some((*name).to_string())
         }
-        _other => unreachable!(),
+        _wrong => unreachable!(),
     };
 
     Ok((user, group))

@@ -1,7 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use super::{Acl, Error, Name, Server};
-use crate::sections::{Line, Section};
+use super::Address;
+use super::{Acl, error::Error, Name, Server};
+use crate::section::borrowed::Section;
+use crate::line::borrowed::Line; 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Backend {
@@ -14,7 +16,7 @@ pub struct Backend {
 
 type Pair = (Name, Backend);
 impl<'a> TryFrom<&'a Section<'a>> for Pair {
-    type Error = Error<'a>;
+    type Error = Error;
 
     fn try_from(entry: &'a Section<'a>) -> Result<(Name, Backend), Self::Error> {
         let Section::Backend{ proxy, lines,  ..} = entry else {
@@ -33,7 +35,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
         {
             match line {
                 Line::Config { key, value, .. } => {
-                    let key = key.to_string();
+                    let key = (*key).to_string();
                     let value = value.map(ToOwned::to_owned);
                     config.insert(key, value);
                 }
@@ -42,35 +44,35 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
                     value,
                     ..
                 } => {
-                    let key = key.to_string();
+                    let key = (*key).to_string();
                     let value = value.map(ToOwned::to_owned);
                     options.insert(key, value);
                 }
                 Line::Acl { name, rule, .. } => {
                     acls.insert(Acl {
-                        name: name.to_string(),
-                        rule: rule.ok_or(Error::AclWithoutRule(name))?.to_string(),
+                        name: (*name).to_string(),
+                        rule: rule.ok_or(Error::acl_without_rule(name))?.to_string(),
                     });
                 }
                 Line::Server {
                     name, addr, option, ..
                 } => servers.push(Server {
-                    name: name.to_string(),
-                    addr: addr.into(),
+                    name: (*name).to_string(),
+                    addr: Address::from(addr),
                     option: option.map(ToOwned::to_owned),
                 }),
-                _other => other.push(_other),
+                wrong => other.push(wrong),
             }
         }
 
         if !other.is_empty() {
-            return Err(Error::WrongBackendLines(other));
+            return Err(Error::wrong_backend_lines(other));
         }
 
         Ok((
-            proxy.to_string(),
+            (*proxy).to_string(),
             Backend {
-                name: proxy.to_string(),
+                name: (*proxy).to_string(),
                 config,
                 options,
                 acls,
@@ -81,7 +83,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
 }
 
 impl<'a> Backend {
-    pub fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error<'a>> {
+    pub(crate) fn parse_multiple(entries: &'a [Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Backend { .. }))

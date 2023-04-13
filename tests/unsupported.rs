@@ -1,4 +1,4 @@
-use haproxy_config::{parse_sections, Section};
+use haproxy_config::{parse_sections, section::borrowed::Section};
 
 fn run_test(file: &str, path: &str) {
     let sections = parse_sections(file).map_err(|e| e.with_path(path)).unwrap();
@@ -6,7 +6,7 @@ fn run_test(file: &str, path: &str) {
 
     assert!(sections
         .iter()
-        .any(|s| matches!(s, Section::UnknownLine { .. })))
+        .any(|s| matches!(s, Section::UnknownLine { .. })));
 }
 
 macro_rules! test_file {

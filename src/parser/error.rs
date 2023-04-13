@@ -48,7 +48,7 @@ impl Error {
 
         Report::build(ReportKind::Error, self.path(), offset)
             .with_message("parse error".to_string())
-            .with_label(Label::new((self.path(), offset..offset + 1)).with_message(msg))
+            .with_label(Label::new((self.path(), offset..offset)).with_message(msg))
             .finish()
     }
 
@@ -56,9 +56,8 @@ impl Error {
         let path = self
             .path
             .as_ref()
-            .map(|p| p.to_string_lossy())
-            .map(Cow::into_owned)
-            .unwrap_or("<unknown>".to_string());
+            .map(|p| (*p).to_string_lossy())
+            .map_or_else(|| "<unknown>".to_string(), Cow::into_owned);
         path
     }
 }

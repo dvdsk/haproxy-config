@@ -7,9 +7,13 @@
 [![Docs.rs](https://img.shields.io/docsrs/haproxy-config?style=flat-square)](https://docs.rs/haproxy_config)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE-MIT)
 
+See also:
+ - [API documentation](https://docs.rs/haproxy-config)
+ - [Changelog](CHANGELOG.md)
+
 A parser for HAProxy config files. HAProxy's configs have many options to many to build a completely typed API. Such an API would also be quite fragile to changes in the config. This crate therefore presents a loosely typed config. 
 
-It parses to sections consisting of [lines](sections::Line) from which a [Config](Config) struct can be made. The struct follows the sections of a HAProxy config. Most options within the sections are presented in a [HashMap](std::collections::HashMap) as key value strings. The important settings have a fully typed API.
+It parses to [`sections`](section::borrowed::Section) consisting of [`lines`](line::borrowed::Line) from which a [`Config`](Config) struct can be made. The struct follows the sections of a HAProxy config. Most options within the sections are presented in a [`HashMap`](std::collections::HashMap) as key value strings. The important settings have a fully typed API.
 
 ### Example
 List all the ports HAProxy will bind to from the config file.

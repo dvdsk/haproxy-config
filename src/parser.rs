@@ -2,14 +2,19 @@ use std::net::Ipv4Addr;
 
 mod error;
 pub use error::Error;
-use super::sections::*;
+use super::section::{AddressRef, BackendModifier, HostRef, PasswordRef};
+use crate::section::borrowed::Section;
+use crate::line::borrowed::Line;
 
-/// Parse a string representing a haproxy config to list of [sections](Section).
+/// Parse a string representing a haproxy config to list of [`sections`](Section).
 /// Preservers comments and the order of the sections and their options.
-/// Unknown sections will result in multiple [UnknownLine][Section::UnknownLine] entries.
+/// Unknown sections will result in multiple [`UnknownLine`][Section::UnknownLine] entries.
 ///
-/// You can build a more strongly typed [Config](super::Config) struct from the output, see example
+/// You can build a more strongly typed [`Config`](super::Config) struct from the output, see example
 /// below.
+///
+/// # Errors
+/// Returns an error on unsupported or wrong haproxy config.
 ///
 /// # Examples
 /// ```
@@ -22,10 +27,10 @@ use super::sections::*;
 /// // Build a config from the sections
 /// let config = Config::try_from(sections.as_slice()).unwrap();
 /// ```
-pub fn parse_sections(input: &str) -> Result<Vec<Section>, Error> {
+pub fn parse_sections(input: &str) -> Result<Vec<Section<'_>>, Error> {
     parser::configuration(input).map_err(|e| Error {
         inner: e,
-        source: input.to_string(),
+        source: (*input).to_string(),
         path: None,
     })
 }
@@ -270,7 +275,8 @@ peg::parser! {
 #[cfg(test)]
 mod tests {
     use super::parser;
-    use crate::sections::{AddressRef, Line, PasswordRef};
+    use crate::line::borrowed::Line;
+    use crate::section::{AddressRef, PasswordRef};
 
     #[test]
     fn global() {
@@ -297,7 +303,7 @@ mod tests {
         let line = parser::user_line(include_str!("user_with_group.txt")).unwrap();
         match line {
             Line::User { groups, .. } if groups == vec!["G1"] => (),
-            _ => panic!("groups not correct, line: {:?}", line),
+            _ => panic!("groups not correct, line: {line:?}"),
         }
     }
 
@@ -313,7 +319,7 @@ mod tests {
                 assert_eq!(groups, Vec::<&str>::new());
                 assert_eq!(pass, "test");
             }
-            _ => panic!("user not correct, line: {:?}", line),
+            _ => panic!("user not correct, line: {line:?}"),
         }
     }
 
@@ -322,7 +328,7 @@ mod tests {
         let line = parser::group_line(include_str!("group_with_users.txt")).unwrap();
         match line {
             Line::Group { users, .. } if users == vec!["haproxy"] => (),
-            _ => panic!("group not correct, line: {:?}", line),
+            _ => panic!("group not correct, line: {line:?}"),
         }
     }
 
@@ -334,7 +340,7 @@ mod tests {
                 assert!(users.is_empty());
                 assert_eq!(name, "G1");
             }
-            _ => panic!("group not correct, line: {:?}", line),
+            _ => panic!("group not correct, line: {line:?}"),
         }
     }
 
@@ -347,12 +353,12 @@ mod tests {
                 assert_eq!(
                     addr,
                     AddressRef {
-                        host: crate::sections::HostRef::Wildcard,
+                        host: crate::section::HostRef::Wildcard,
                         port: Some(80)
                     }
                 );
             }
-            _ => panic!("group not correct, line: {:?}", line),
+            _ => panic!("group not correct, line: {line:?}"),
         }
     }
 }
