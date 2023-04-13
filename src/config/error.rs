@@ -1,4 +1,4 @@
-use super::super::sections::owned::Section;
+use super::super::section::owned::Section;
 
 use crate::line::{borrowed, owned::Line};
 
@@ -95,7 +95,7 @@ macro_rules! from_borrowed_line {
 from_borrowed_line! {SysUserHasGroups sys_user_has_groups}
 from_borrowed_line! {SysGroupHasUsers sys_group_has_users}
 
-use crate::sections::borrowed::Section as BorrowedSection;
+use crate::section::borrowed::Section as BorrowedSection;
 macro_rules! from_borrowed_section {
     ($enum_variant:ident $fn_name:ident) => {
         impl Error {

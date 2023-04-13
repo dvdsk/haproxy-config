@@ -1,4 +1,4 @@
-use haproxy_config::{parse_sections, sections::borrowed::Section};
+use haproxy_config::{parse_sections, section::borrowed::Section};
 
 fn run_test(file: &str, path: &str) {
     let sections = parse_sections(file).map_err(|e| e.with_path(path)).unwrap();

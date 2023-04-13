@@ -1,6 +1,6 @@
-use crate::sections::PasswordRef;
-use crate::sections::BackendModifier;
-use crate::sections::AddressRef;
+use crate::section::PasswordRef;
+use crate::section::BackendModifier;
+use crate::section::AddressRef;
 
 #[derive(Debug)]
 pub enum Line<'input> {

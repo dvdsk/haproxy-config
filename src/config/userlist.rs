@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use super::{error::Error, Name};
-use crate::sections::{PasswordRef, borrowed::Section};
+use crate::section::{PasswordRef, borrowed::Section};
 use crate::line::borrowed::Line;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]

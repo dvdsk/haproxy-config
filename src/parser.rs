@@ -2,8 +2,8 @@ use std::net::Ipv4Addr;
 
 mod error;
 pub use error::Error;
-use super::sections::{AddressRef, BackendModifier, HostRef, PasswordRef};
-use crate::sections::borrowed::Section;
+use super::section::{AddressRef, BackendModifier, HostRef, PasswordRef};
+use crate::section::borrowed::Section;
 use crate::line::borrowed::Line;
 
 /// Parse a string representing a haproxy config to list of [`sections`](Section).
@@ -276,7 +276,7 @@ peg::parser! {
 mod tests {
     use super::parser;
     use crate::line::borrowed::Line;
-    use crate::sections::{AddressRef, PasswordRef};
+    use crate::section::{AddressRef, PasswordRef};
 
     #[test]
     fn global() {
@@ -353,7 +353,7 @@ mod tests {
                 assert_eq!(
                     addr,
                     AddressRef {
-                        host: crate::sections::HostRef::Wildcard,
+                        host: crate::section::HostRef::Wildcard,
                         port: Some(80)
                     }
                 );

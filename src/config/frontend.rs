@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
 use super::{Acl, error::Error, Name, Bind, Address};
-use crate::sections;
-use crate::sections::{BackendModifier, borrowed::Section};
+use crate::section;
+use crate::section::{BackendModifier, borrowed::Section};
 use crate::line::borrowed::Line;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
@@ -113,7 +113,7 @@ impl<'a> TryFrom<&'a Section<'a>> for Pair {
 }
 
 impl<'a> Frontend {
-    pub(crate) fn parse_multiple(entries: &'a [sections::borrowed::Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
+    pub(crate) fn parse_multiple(entries: &'a [section::borrowed::Section<'a>]) -> Result<HashMap<Name, Self>, Error> {
         entries
             .iter()
             .filter(|e| matches!(e, Section::Frontend { .. }))

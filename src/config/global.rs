@@ -1,7 +1,7 @@
 use crate::config::error::Error;
 use crate::line::borrowed::Line;
 
-use super::super::sections::borrowed::Section;
+use super::super::section::borrowed::Section;
 
 use std::collections::HashMap;
 

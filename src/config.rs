@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 use std::net::Ipv4Addr;
 
-use super::sections::borrowed::Section;
-use crate::sections::{AddressRef, HostRef};
+use super::section::borrowed::Section;
+use crate::section::{AddressRef, HostRef};
 use crate::line::borrowed::Line; 
 
 mod global;

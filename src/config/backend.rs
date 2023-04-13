@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use super::Address;
 use super::{Acl, error::Error, Name, Server};
-use crate::sections::{borrowed::Section};
+use crate::section::borrowed::Section;
 use crate::line::borrowed::Line; 
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -1,6 +1,9 @@
 use crate::config::{Address, Password};
 
+/// Zero copy representations of the lines in a config section. 
 pub mod borrowed;
+/// Owned representations of the lines in a config section, far easier to work with. Can be created
+/// from a [`borrowed::Line`] using [`From`]
 pub mod owned;
 
 impl<'a> From<&'a borrowed::Line<'a>> for owned::Line {

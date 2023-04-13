@@ -2,7 +2,7 @@
 
 mod parser;
 /// Zero copy and Owned representations of config sections.
-pub mod sections;
+pub mod section;
 
 /// Zero copy and Owned representations of the lines in a config section.
 pub mod line;

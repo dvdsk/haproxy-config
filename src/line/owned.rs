@@ -1,5 +1,5 @@
 use crate::config::{Address, Password};
-use crate::sections::BackendModifier;
+use crate::section::BackendModifier;
 
 #[derive(Debug)]
 pub enum Line {

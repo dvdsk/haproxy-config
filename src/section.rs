@@ -1,6 +1,11 @@
 use std::net::Ipv4Addr;
 
+/// Zero copy representations of the lines in a config section, fast to create however hard to
+/// pass around as it has a lifetime. This is the default returned by
+/// [`parse_sections`][crate::parse_sections].
 pub mod borrowed;
+/// Owned representations of a config section, far easier to work with. Can be created
+/// from a [`borrowed::Section`] using [`From`].
 pub mod owned;
 
 use crate::line::owned::Line;
