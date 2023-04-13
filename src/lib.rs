@@ -1,4 +1,4 @@
-#![doc= include_str!("../Readme.md")]
+#![doc= include_str!("../README.md")]
 
 mod parser;
 /// Zero copy and Owned representations of config sections.

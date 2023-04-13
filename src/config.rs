@@ -98,7 +98,7 @@ pub type Name = String;
 /// is parsed as a config option.
 /// ```
 /// use haproxy_config::parse_sections;
-/// use haproxy_config::{Config, sections::borrowed::Section};
+/// use haproxy_config::{Config, section::borrowed::Section};
 ///
 /// let file = include_str!("../tests/unsupported/nonesens.cfg");
 /// let sections = dbg!(parse_sections(file).unwrap());
