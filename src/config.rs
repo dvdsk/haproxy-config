@@ -9,7 +9,7 @@ use crate::line::borrowed::Line;
 
 mod global;
 pub use global::Global;
-mod frontend;
+pub mod frontend;
 pub use frontend::Frontend;
 mod backend;
 pub use backend::Backend;

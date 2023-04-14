@@ -5,6 +5,8 @@ use super::{Acl, error::Error, Name, Server};
 use crate::section::borrowed::Section;
 use crate::line::borrowed::Line; 
 
+/// Frontends specify whether to forward traffic here 
+/// using [`config::backends`][super::frontend::Backend].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Backend {
     pub name: String,

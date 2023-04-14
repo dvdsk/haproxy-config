@@ -5,6 +5,7 @@ use crate::section;
 use crate::section::{BackendModifier, borrowed::Section};
 use crate::line::borrowed::Line;
 
+/// Backend to which a frontend can forward messages
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Backend {
     pub name: String,
@@ -22,7 +23,7 @@ pub struct Frontend {
     pub bind: Bind,
 }
 
-pub type Pair = (Name, Frontend);
+type Pair = (Name, Frontend);
 
 impl<'a> TryFrom<&'a Section<'a>> for Pair {
     type Error = Error;
