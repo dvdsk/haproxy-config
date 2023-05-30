@@ -25,4 +25,4 @@ peg = "0.8.1"
 thiserror = "1.0.40"
 
 [dev-dependencies]
-color-eyre = "0.5"
+color-eyre = "0.6"
